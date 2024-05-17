@@ -1,0 +1,135 @@
+databaseChangeLog:
+  - changeSet:
+      id: create-users-table
+      author: nkgrz
+      changes:
+        - createTable:
+            tableName: users
+            columns:
+              - column:
+                  name: chat_id
+                  type: BIGINT
+                  constraints:
+                    primaryKey: true
+              - column:
+                  name: user_name
+                  type: varchar(255)
+  - changeSet:
+      id: create-products-table
+      author: nkgrz
+      changes:
+        - createTable:
+            tableName: products
+            columns:
+              - column:
+                  name: product_id
+                  type: int
+                  constraints:
+                    primaryKey: true
+              - column:
+                  name: name
+                  type: varchar(255)
+              - column:
+                  name: description
+                  type: text
+              - column:
+                  name: price
+                  type: decimal(7,2)
+              - column:
+                  name: count
+                  type: int
+
+  - changeSet:
+      id: add-image-link-to-products
+      author: nkgrz
+      changes:
+        - addColumn:
+            tableName: products
+            columns:
+              - column:
+                  name: image_link
+                  type: varchar(255)
+
+  - changeSet:
+      id: create-orders-table
+      author: nkgrz
+      changes:
+        - createTable:
+            tableName: orders
+            columns:
+              - column:
+                  name: order_id
+                  type: BIGINT
+                  constraints:
+                    primaryKey: true
+              - column:
+                  name: chat_id
+                  type: BIGINT
+                  constraints:
+                    foreignKeyName: orders_user_fk
+                    references: users(chat_id)
+              - column:
+                  name: total
+                  type: decimal(7,2)
+              - column:
+                  name: order_date
+                  type: timestamp
+              - column:
+                  name: status
+                  type: varchar(50)
+              - column:
+                  name: products
+                  type: json
+
+  - changeSet:
+      id: create-cart-items-table
+      author: nkgrz
+      changes:
+        - createTable:
+            tableName: cart_items
+            columns:
+#              тут нет столбца cart_item_id, но в таблице он есть
+#              в будущем могут возникнуть проблемы
+#              - column:
+#                    name: cart_item_id
+#                    type: BIGINT
+#                    constraints:
+#                      primaryKey: true
+              - column:
+                  name: chat_id
+                  type: BIGINT
+                  constraints:
+                    foreignKeyName: cart_items_userid_fk
+                    references: users(chat_id)
+              - column:
+                  name: product_id
+                  type: int
+                  constraints:
+                    foreignKeyName: cart_items_productid_fk
+                    references: products(product_id)
+              - column:
+                  name: quantity
+                  type: int
+
+  - changeSet:
+      id: create-order-products-table
+      author: nkgrz
+      changes:
+        - createTable:
+            tableName: order_products
+            columns:
+              - column:
+                  name: order_id
+                  type: BIGINT
+                  constraints:
+                    foreignKeyName: order_products_orderid_fk
+                    references: orders(order_id)
+              - column:
+                  name: product_id
+                  type: int
+                  constraints:
+                    foreignKeyName: order_products_productid_fk
+                    references: products(product_id)
+              - column:
+                  name: product
+                  type: varchar(255)

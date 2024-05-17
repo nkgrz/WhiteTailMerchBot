@@ -1,0 +1,27 @@
+spring:
+    application:
+        name: demoTGBot
+    datasource:
+        url: ${MYSQL_JDBC_URL:jdbc:mysql://localhost:3306/demo-tg-bot}
+        username: ${MYSQL_USERNAME:root}
+        password: ${MYSQL_PASSWORD:}
+        driver-class-name: com.mysql.cj.jdbc.Driver
+        hikari:
+            maximum-pool-size: 100
+    jpa:
+        hibernate:
+            ddl-auto: update
+        show-sql: true
+        database-platform: org.hibernate.dialect.MySQL8Dialect
+    liquibase:
+        change-log: classpath:/db/changelog/db.changelog-master.yml
+
+bot:
+    name: "White Tail"
+    token: "7008020256:AAFiBEg786PHYvNvSIIwagT9IBV8sx1FHmw"
+    owner: 214997124
+
+logging:
+    file:
+        path: /var/log/shopbot.com/demo-tg-bot
+        name: com.shopbot.demotgbot.DemoTgBot
