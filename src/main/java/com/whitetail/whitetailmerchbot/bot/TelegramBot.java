@@ -1,10 +1,17 @@
 package com.whitetail.whitetailmerchbot.bot;
 
-import java.util.List;
+import com.whitetail.whitetailmerchbot.bot.buttons.CartKeyboardBuilder;
+import com.whitetail.whitetailmerchbot.bot.buttons.OrdersKeyboardBuilder;
+import com.whitetail.whitetailmerchbot.bot.buttons.ProductKeyboardBuilder;
+import com.whitetail.whitetailmerchbot.dao.CartItemRepository;
+import com.whitetail.whitetailmerchbot.dao.OrderRepository;
+import com.whitetail.whitetailmerchbot.dao.ProductsRepository;
+import com.whitetail.whitetailmerchbot.entity.CartItem;
+import com.whitetail.whitetailmerchbot.entity.Order;
+import com.whitetail.whitetailmerchbot.entity.Product;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.commands.SetMyCommands;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -16,19 +23,13 @@ import org.telegram.telegrambots.meta.api.objects.commands.scope.BotCommandScope
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
-import com.whitetail.whitetailmerchbot.bot.buttons.CartKeyboardBuilder;
-import com.whitetail.whitetailmerchbot.bot.buttons.OrdersKeyboardBuilder;
-import com.whitetail.whitetailmerchbot.bot.buttons.ProductKeyboardBuilder;
-import com.whitetail.whitetailmerchbot.dao.CartItemRepository;
-import com.whitetail.whitetailmerchbot.dao.OrderRepository;
-import com.whitetail.whitetailmerchbot.dao.ProductsRepository;
-import com.whitetail.whitetailmerchbot.entity.CartItem;
-import com.whitetail.whitetailmerchbot.entity.Order;
-import com.whitetail.whitetailmerchbot.entity.Product;
+import java.util.List;
+
 import static com.whitetail.whitetailmerchbot.bot.buttons.BackButton.*;
 import static com.whitetail.whitetailmerchbot.bot.buttons.CartKeyboardBuilder.createCartKeyboard;
 import static com.whitetail.whitetailmerchbot.bot.buttons.MainMenuKeyboardBuilder.createMenuKeyboard;
 import static com.whitetail.whitetailmerchbot.bot.constants.BotConstantButtonCallback.*;
+import static com.whitetail.whitetailmerchbot.bot.constants.BotMessages.HELP_MESSAGE;
 import static com.whitetail.whitetailmerchbot.bot.constants.BotMessages.WELCOME_MESSAGE;
 
 @Slf4j
@@ -96,6 +97,9 @@ public class TelegramBot extends TelegramLongPollingBot {
                         sendMessage(chatId, "Привет, " + fullName + "! \uD83D\uDE42\n" + WELCOME_MESSAGE);
                     case "/menu":
                         sendMenu(chatId);
+                        break;
+                    case "/help":
+                        sendMessage(chatId, HELP_MESSAGE);
                         break;
                     default:
                         sendMessage(chatId, "Пока команда не поддерживается");
