@@ -9,4 +9,5 @@ public class BotConstantButtonCallback {
         public static final String BACK_TO_MENU_CALLBACK = "back_to_menu";
         public static final String CALCULATE_DELIVERY_CALLBACK = "calculate_delivery";
         public static final String CHANGE_BASKET_CALLBACK = "change_basket";
+        public static final String PLACE_ORDER_CALLBACK = "place_order";
 }
