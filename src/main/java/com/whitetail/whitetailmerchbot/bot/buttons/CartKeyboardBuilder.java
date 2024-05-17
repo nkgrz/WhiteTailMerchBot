@@ -10,10 +10,8 @@ import java.util.List;
 
 import static com.whitetail.whitetailmerchbot.bot.buttons.BackButton.createBackButton;
 import static com.whitetail.whitetailmerchbot.bot.buttons.BackButton.createMainButton;
-import static com.whitetail.whitetailmerchbot.bot.constants.BotConstantButtonCallback.CALCULATE_DELIVERY_CALLBACK;
-import static com.whitetail.whitetailmerchbot.bot.constants.BotConstantButtonCallback.CHANGE_BASKET_CALLBACK;
-import static com.whitetail.whitetailmerchbot.bot.constants.ButtonsText.CALCULATE_DELIVERY_TEXT;
-import static com.whitetail.whitetailmerchbot.bot.constants.ButtonsText.CHANGE_BASKET_TEXT;
+import static com.whitetail.whitetailmerchbot.bot.constants.BotConstantButtonCallback.*;
+import static com.whitetail.whitetailmerchbot.bot.constants.ButtonsText.*;
 
 public class CartKeyboardBuilder {
 
@@ -40,9 +38,8 @@ public class CartKeyboardBuilder {
 
         message.append("\nВсего товаров: ").append(totalQuantity).append(" шт.\n");
         message.append("Стоимость: ").append(totalPrice).append(" руб.\n");
-        // TODO потом указывать цену доставки
-        message.append("Доставка: Не учитывается\n\n");
-
+        message.append("Доставка: ").append(COST_DELIVERY).append(" руб.\n\n");
+        totalPrice = totalPrice.add(BigDecimal.valueOf(COST_DELIVERY));
         message.append("Итого: ").append(totalPrice).append(" руб.\n");
         message.append("Все верно?");
         return message.toString();
@@ -51,15 +48,17 @@ public class CartKeyboardBuilder {
     public static InlineKeyboardMarkup createCartKeyboard() {
         List<List<InlineKeyboardButton>> keyboardRows = new ArrayList<>();
 
-        var calculateDeliveryButton = new InlineKeyboardButton();
-        calculateDeliveryButton.setText(CALCULATE_DELIVERY_TEXT);
-        calculateDeliveryButton.setCallbackData(CALCULATE_DELIVERY_CALLBACK);
-        keyboardRows.add(List.of(calculateDeliveryButton));
+//       TODO сделать кнопку для подсчета доставки
 
         var changeBasketButton = new InlineKeyboardButton();
         changeBasketButton.setText(CHANGE_BASKET_TEXT);
         changeBasketButton.setCallbackData(CHANGE_BASKET_CALLBACK);
         keyboardRows.add(List.of(changeBasketButton));
+
+        var placeOrderButton = new InlineKeyboardButton();
+        placeOrderButton.setText(PLACE_ORDER);
+        placeOrderButton.setCallbackData(PLACE_ORDER_CALLBACK);
+        keyboardRows.add(List.of(placeOrderButton));
 
         keyboardRows.add(List.of(createBackButton(), createMainButton()));
 
