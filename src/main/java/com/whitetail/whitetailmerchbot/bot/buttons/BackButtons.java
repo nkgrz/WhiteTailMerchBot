@@ -6,7 +6,7 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKe
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.whitetail.whitetailmerchbot.bot.constants.BotConstantButtonCallback.BACK_TO_MENU_CALLBACK;
+import static com.whitetail.whitetailmerchbot.bot.constants.ButtonsCallback.BACK_TO_MENU_CALLBACK;
 import static com.whitetail.whitetailmerchbot.bot.constants.ButtonsText.BACK_BUTTON_TEXT;
 import static com.whitetail.whitetailmerchbot.bot.constants.ButtonsText.MAIN_BUTTON_TEXT;
 
