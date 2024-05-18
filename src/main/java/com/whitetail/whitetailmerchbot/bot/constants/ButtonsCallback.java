@@ -1,6 +1,6 @@
 package com.whitetail.whitetailmerchbot.bot.constants;
 
-public class BotConstantButtonCallback {
+public class ButtonsCallback {
         public static final String CATALOG_CALLBACK = "catalog";
         public static final String BASKET_CALLBACK = "basket";
         public static final String HISTORY_CALLBACK = "history";
