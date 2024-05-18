@@ -2,6 +2,7 @@ package com.whitetail.whitetailmerchbot.entity;
 
 import jakarta.persistence.*;
 import lombok.Getter;
+import lombok.Setter;
 
 import java.math.BigDecimal;
 
@@ -25,6 +26,7 @@ public class Product {
     @Column(name = "price")
     private BigDecimal price;
 
+    @Setter
     @Getter
     @Column(name = "count")
     private Integer count;
