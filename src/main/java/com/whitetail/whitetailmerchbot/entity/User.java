@@ -1,6 +1,7 @@
 package com.whitetail.whitetailmerchbot.entity;
 import jakarta.persistence.*;
 import lombok.Getter;
+import lombok.Setter;
 
 
 @Entity
@@ -8,10 +9,11 @@ import lombok.Getter;
 public class User {
     @Id
     @Getter
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Setter
     @Column(name = "chat_id")
     private Long chatId;
 
+    @Setter
     @Column(name = "user_name")
     private String userName;
 
