@@ -15,8 +15,8 @@ public class ProductKeyboardBuilder {
     public static InlineKeyboardMarkup createKeyboard(List<Product> products) {
         List<List<InlineKeyboardButton>> keyboardRows = new ArrayList<>();
 
-        for (int i = 0; i < products.size(); i ++) {
-            keyboardRows.add(List.of(createProductButton(products.get(i))));
+        for (Product product : products) {
+            keyboardRows.add(List.of(createProductButton(product)));
         }
 
         keyboardRows.add(List.of(createBackButton(), createMainButton()));
