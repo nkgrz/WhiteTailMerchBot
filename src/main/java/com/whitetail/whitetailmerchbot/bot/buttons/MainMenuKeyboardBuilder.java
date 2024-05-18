@@ -17,8 +17,8 @@ public class MainMenuKeyboardBuilder {
         buttonCatalog.setCallbackData(ButtonsCallback.CATALOG_CALLBACK);
 
         var buttonBasket = new InlineKeyboardButton();
-        buttonBasket.setText(BASKET_BUTTON_TEXT);
-        buttonBasket.setCallbackData(ButtonsCallback.BASKET_CALLBACK);
+        buttonBasket.setText(CART_BUTTON_TEXT);
+        buttonBasket.setCallbackData(ButtonsCallback.CART_CALLBACK);
 
         var buttonHistory = new InlineKeyboardButton();
         buttonHistory.setText(HISTORY_BUTTON_TEXT);
