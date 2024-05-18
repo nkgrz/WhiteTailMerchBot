@@ -10,7 +10,7 @@ import static com.whitetail.whitetailmerchbot.bot.constants.BotConstantButtonCal
 import static com.whitetail.whitetailmerchbot.bot.constants.ButtonsText.BACK_BUTTON_TEXT;
 import static com.whitetail.whitetailmerchbot.bot.constants.ButtonsText.MAIN_BUTTON_TEXT;
 
-public class BackButton {
+public class BackButtons {
 
     public static InlineKeyboardButton createBackButton() {
         return createBackButton(BACK_TO_MENU_CALLBACK);

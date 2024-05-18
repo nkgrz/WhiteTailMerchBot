@@ -1,17 +1,11 @@
 package com.whitetail.whitetailmerchbot.service;
 
 import com.whitetail.whitetailmerchbot.entity.CartItem;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.List;
 
-import static com.whitetail.whitetailmerchbot.bot.buttons.BackButton.createBackButton;
-import static com.whitetail.whitetailmerchbot.bot.buttons.BackButton.createMainButton;
-import static com.whitetail.whitetailmerchbot.bot.constants.BotConstantButtonCallback.CHANGE_BASKET_CALLBACK;
-import static com.whitetail.whitetailmerchbot.bot.constants.BotConstantButtonCallback.PLACE_ORDER_CALLBACK;
+import static com.whitetail.whitetailmerchbot.bot.buttons.BackButtons.createBackButton;
 import static com.whitetail.whitetailmerchbot.bot.constants.ButtonsText.*;
 
 public class CartBuilder {

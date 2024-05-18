@@ -7,8 +7,8 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKe
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.whitetail.whitetailmerchbot.bot.buttons.BackButton.createBackButton;
-import static com.whitetail.whitetailmerchbot.bot.buttons.BackButton.createMainButton;
+import static com.whitetail.whitetailmerchbot.bot.buttons.BackButtons.createBackButton;
+import static com.whitetail.whitetailmerchbot.bot.buttons.BackButtons.createMainButton;
 
 public class ProductKeyboardBuilder {
 
