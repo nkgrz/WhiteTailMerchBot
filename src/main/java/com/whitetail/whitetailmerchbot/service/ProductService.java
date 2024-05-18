@@ -19,7 +19,23 @@ public class ProductService {
     public List<Product> getAllProducts() {
         return productsRepository.findAll();
     }
-    public Product getProductById(int id) {
-        return productsRepository.findById(id).orElseThrow(() -> new RuntimeException("Product not found"));
+
+    public int getQuantityOfProduct(int productId) {
+        return productsRepository.findById(productId).get().getCount();
+    }
+
+    public boolean setQuantityOfProduct(int productId, int quantity) {
+        Product product = productsRepository.findById(productId).get();
+        int productQuantity = product.getCount();
+        if (productQuantity < quantity) {
+            return false;
+        } else {
+            product.setCount(productQuantity - quantity);
+            return true;
+        }
+    }
+
+    public Product getProductById(int productId) {
+        return productsRepository.findById(productId).orElseThrow(() -> new RuntimeException("Product not found"));
     }
 }
