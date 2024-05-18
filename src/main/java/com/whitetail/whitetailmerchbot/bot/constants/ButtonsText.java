@@ -11,6 +11,6 @@ public class ButtonsText {
     public static final String CALCULATE_DELIVERY_TEXT = "Посчитать доставку";
     public static final String CHANGE_BASKET_TEXT = "Изменить корзину";
     public static final int COST_DELIVERY = 400;
-    public static final String PLACE_ORDER = "Оформить заказ";
-    public static final String ADD_TO_CART = "Добавить в корзину";
+    public static final String PLACE_ORDER_TEXT = "Оформить заказ";
+    public static final String ADD_TO_CART_TEXT = "Добавить в корзину";
 }
