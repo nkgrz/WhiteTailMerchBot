@@ -9,15 +9,26 @@ import java.util.List;
 
 @Service
 public class CartService {
+
     private final CartItemRepository cartItemRepository;
+    private final UserService userService;
+    private final ProductService productService;
 
     @Autowired
-    public CartService(CartItemRepository cartItemRepository) {
+    public CartService(CartItemRepository cartItemRepository,
+                       UserService userService,
+                       ProductService productService) {
         this.cartItemRepository = cartItemRepository;
+        this.userService = userService;
+        this.productService = productService;
     }
 
-    public CartItem save(CartItem cartItem) {
-        return cartItemRepository.save(cartItem);
+    public void addToCart(long chatId, int productId, int quantity) {
+        CartItem cartItem = new CartItem();
+        cartItem.setUser(userService.getUser(chatId));
+        cartItem.setProduct(productService.getProductById(productId));
+        cartItem.setQuantity(quantity);
+        cartItemRepository.save(cartItem);
     }
 
     public List<CartItem> findCartItemsByUserId(Long chatId) {
