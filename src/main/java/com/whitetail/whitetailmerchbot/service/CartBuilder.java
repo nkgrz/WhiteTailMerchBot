@@ -1,4 +1,4 @@
-package com.whitetail.whitetailmerchbot.bot.buttons;
+package com.whitetail.whitetailmerchbot.service;
 
 import com.whitetail.whitetailmerchbot.entity.CartItem;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
@@ -10,11 +10,11 @@ import java.util.List;
 
 import static com.whitetail.whitetailmerchbot.bot.buttons.BackButton.createBackButton;
 import static com.whitetail.whitetailmerchbot.bot.buttons.BackButton.createMainButton;
-import static com.whitetail.whitetailmerchbot.bot.constants.BotConstantButtonCallback.*;
+import static com.whitetail.whitetailmerchbot.bot.constants.BotConstantButtonCallback.CHANGE_BASKET_CALLBACK;
+import static com.whitetail.whitetailmerchbot.bot.constants.BotConstantButtonCallback.PLACE_ORDER_CALLBACK;
 import static com.whitetail.whitetailmerchbot.bot.constants.ButtonsText.*;
 
-public class CartKeyboardBuilder {
-
+public class CartBuilder {
     public static String cartItemsToString(List<CartItem> cartItems) {
         StringBuilder message = new StringBuilder();
         message.append("Список ваших товаров в корзине:\n\n");
@@ -44,28 +44,4 @@ public class CartKeyboardBuilder {
         message.append("Все верно?");
         return message.toString();
     }
-
-    public static InlineKeyboardMarkup createCartKeyboard() {
-        List<List<InlineKeyboardButton>> keyboardRows = new ArrayList<>();
-
-//       TODO сделать кнопку для подсчета доставки
-
-        var changeBasketButton = new InlineKeyboardButton();
-        changeBasketButton.setText(CHANGE_BASKET_TEXT);
-        changeBasketButton.setCallbackData(CHANGE_BASKET_CALLBACK);
-        keyboardRows.add(List.of(changeBasketButton));
-
-        var placeOrderButton = new InlineKeyboardButton();
-        placeOrderButton.setText(PLACE_ORDER);
-        placeOrderButton.setCallbackData(PLACE_ORDER_CALLBACK);
-        keyboardRows.add(List.of(placeOrderButton));
-
-        keyboardRows.add(List.of(createBackButton(), createMainButton()));
-
-        InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
-        inlineKeyboardMarkup.setKeyboard(keyboardRows);
-
-        return inlineKeyboardMarkup;
-    }
-
 }

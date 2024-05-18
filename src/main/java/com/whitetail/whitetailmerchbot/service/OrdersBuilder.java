@@ -1,20 +1,13 @@
-package com.whitetail.whitetailmerchbot.bot.buttons;
+package com.whitetail.whitetailmerchbot.service;
 
-import com.whitetail.whitetailmerchbot.entity.CartItem;
 import com.whitetail.whitetailmerchbot.entity.Order;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.List;
 
-import static com.whitetail.whitetailmerchbot.bot.buttons.BackButton.createBackButton;
-import static com.whitetail.whitetailmerchbot.bot.buttons.BackButton.createMainButton;
+public class OrdersBuilder {
 
-public class OrdersKeyboardBuilder {
-
-    public static String cartItemsToString(List<Order> orders) {
+    public static String orderItemsToString(List<Order> orders) {
         StringBuilder message = new StringBuilder();
         message.append("История ваших заказов:\n\n");
 
@@ -34,7 +27,6 @@ public class OrdersKeyboardBuilder {
 //                    TODO трек номер для отслеживания заказа
                     .append("\n\n");
         }
-
         return message.toString();
     }
 }
