@@ -24,11 +24,17 @@ public class CartService {
     }
 
     public void addToCart(long chatId, int productId, int quantity) {
-        CartItem cartItem = new CartItem();
-        cartItem.setUser(userService.getUser(chatId));
-        cartItem.setProduct(productService.getProductById(productId));
-        cartItem.setQuantity(quantity);
-        cartItemRepository.save(cartItem);
+        CartItem existingCartItem = cartItemRepository.findCartItemByUserChatIdAndProductProductId(chatId, productId);
+        if (existingCartItem != null) {
+            existingCartItem.setQuantity(existingCartItem.getQuantity() + quantity);
+            cartItemRepository.save(existingCartItem);
+        } else {
+            CartItem cartItem = new CartItem();
+            cartItem.setUser(userService.getUser(chatId));
+            cartItem.setProduct(productService.getProductById(productId));
+            cartItem.setQuantity(quantity);
+            cartItemRepository.save(cartItem);
+        }
     }
 
     public List<CartItem> findCartItemsByUserId(Long chatId) {

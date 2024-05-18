@@ -43,7 +43,7 @@ public class AddToCartButtons {
             keyboardRows.get(keyboardRows.size() - 1).add(button);
 
         }
-        keyboardRows.add(List.of(createBackButton(CATALOG_CALLBACK), createMainButton()));
+        keyboardRows.add(List.of(createBackButton(PRODUCT_DETAILS_CALLBACK + productId), createMainButton()));
         return new InlineKeyboardMarkup(keyboardRows);
     }
 }
