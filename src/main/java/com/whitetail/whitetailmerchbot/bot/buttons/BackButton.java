@@ -7,15 +7,19 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.whitetail.whitetailmerchbot.bot.constants.BotConstantButtonCallback.BACK_TO_MENU_CALLBACK;
-import static com.whitetail.whitetailmerchbot.bot.constants.ButtonsText.*;
+import static com.whitetail.whitetailmerchbot.bot.constants.ButtonsText.BACK_BUTTON_TEXT;
+import static com.whitetail.whitetailmerchbot.bot.constants.ButtonsText.MAIN_BUTTON_TEXT;
 
 public class BackButton {
-    // TODO переделать кнопку, чтобы принимала параметр куда назад
+
     public static InlineKeyboardButton createBackButton() {
+        return createBackButton(BACK_TO_MENU_CALLBACK);
+    }
+
+    public static InlineKeyboardButton createBackButton(String callbackData) {
         var buttonBack = new InlineKeyboardButton();
         buttonBack.setText(BACK_BUTTON_TEXT);
-        // TODO изменить на назад а не в меню
-        buttonBack.setCallbackData(BACK_TO_MENU_CALLBACK);
+        buttonBack.setCallbackData(callbackData);
         return buttonBack;
     }
 
@@ -34,8 +38,12 @@ public class BackButton {
     }
 
     public static InlineKeyboardMarkup createBackAndMainButtons() {
+        return createBackAndMainButtons(BACK_TO_MENU_CALLBACK);
+    }
+
+    public static InlineKeyboardMarkup createBackAndMainButtons(String callbackData) {
         List<List<InlineKeyboardButton>> keyboardRows = new ArrayList<>();
-        keyboardRows.add(List.of(createBackButton(), createMainButton()));
+        keyboardRows.add(List.of(createBackButton(callbackData), createMainButton()));
         return new InlineKeyboardMarkup(keyboardRows);
     }
 }
