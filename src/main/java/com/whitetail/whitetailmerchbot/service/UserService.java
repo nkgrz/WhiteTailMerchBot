@@ -27,4 +27,8 @@ public class UserService {
     public Iterable<User> getAllUsers() {
         return userRepository.findAll();
     }
+
+    public User getUser(long chatId) {
+        return userRepository.findById(chatId).orElse(null);
+    }
 }
