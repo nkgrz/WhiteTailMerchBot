@@ -11,7 +11,7 @@ import static com.whitetail.whitetailmerchbot.bot.buttons.BackButtons.createMain
 import static com.whitetail.whitetailmerchbot.bot.constants.ButtonsCallback.CHANGE_BASKET_CALLBACK;
 import static com.whitetail.whitetailmerchbot.bot.constants.ButtonsCallback.PLACE_ORDER_CALLBACK;
 import static com.whitetail.whitetailmerchbot.bot.constants.ButtonsText.CHANGE_BASKET_TEXT;
-import static com.whitetail.whitetailmerchbot.bot.constants.ButtonsText.PLACE_ORDER;
+import static com.whitetail.whitetailmerchbot.bot.constants.ButtonsText.PLACE_ORDER_TEXT;
 
 public class CartKeyboardBuilder {
     public static InlineKeyboardMarkup createCartKeyboard() {
@@ -25,7 +25,7 @@ public class CartKeyboardBuilder {
         keyboardRows.add(List.of(changeBasketButton));
 
         var placeOrderButton = new InlineKeyboardButton();
-        placeOrderButton.setText(PLACE_ORDER);
+        placeOrderButton.setText(PLACE_ORDER_TEXT);
         placeOrderButton.setCallbackData(PLACE_ORDER_CALLBACK);
         keyboardRows.add(List.of(placeOrderButton));
 
