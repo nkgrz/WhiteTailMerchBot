@@ -37,26 +37,4 @@ public class OrdersKeyboardBuilder {
 
         return message.toString();
     }
-
-    public static InlineKeyboardMarkup createKeyboard(List<CartItem> cartItems) {
-        List<List<InlineKeyboardButton>> keyboardRows = new ArrayList<>();
-
-
-//        var calculateDeliveryButton = new InlineKeyboardButton();
-//        calculateDeliveryButton.setText(CALCULATE_DELIVERY_TEXT);
-//        calculateDeliveryButton.setCallbackData(CALCULATE_DELIVERY_CALLBACK);
-//        keyboardRows.add(List.of(calculateDeliveryButton));
-//
-//        var changeBasketButton = new InlineKeyboardButton();
-//        changeBasketButton.setText(CHANGE_BASKET_TEXT);
-//        changeBasketButton.setCallbackData(CHANGE_BASKET_CALLBACK);
-//        keyboardRows.add(List.of(changeBasketButton));
-
-        keyboardRows.add(List.of(createBackButton(), createMainButton()));
-
-        InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
-        inlineKeyboardMarkup.setKeyboard(keyboardRows);
-
-        return inlineKeyboardMarkup;
-    }
 }
