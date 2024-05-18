@@ -9,6 +9,7 @@ import java.util.List;
 
 import static com.whitetail.whitetailmerchbot.bot.buttons.BackButtons.createBackButton;
 import static com.whitetail.whitetailmerchbot.bot.buttons.BackButtons.createMainButton;
+import static com.whitetail.whitetailmerchbot.bot.constants.ButtonsCallback.PRODUCT_DETAILS_CALLBACK;
 
 public class ProductKeyboardBuilder {
 
@@ -31,7 +32,7 @@ public class ProductKeyboardBuilder {
     private static InlineKeyboardButton createProductButton(Product product) {
         InlineKeyboardButton button = new InlineKeyboardButton();
         button.setText(product.getName());
-        button.setCallbackData("product_" + product.getProductId());
+        button.setCallbackData(PRODUCT_DETAILS_CALLBACK + product.getProductId());
         return button;
     }
 }
