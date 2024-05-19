@@ -13,7 +13,7 @@ import static com.whitetail.whitetailmerchbot.bot.constants.ButtonsCallback.PROD
 
 public class ProductKeyboardBuilder {
 
-    public static InlineKeyboardMarkup createKeyboard(List<Product> products) {
+    public static InlineKeyboardMarkup createProductKeyboard(List<Product> products) {
         List<List<InlineKeyboardButton>> keyboardRows = new ArrayList<>();
 
         for (Product product : products) {
