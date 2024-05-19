@@ -24,21 +24,27 @@ public class AddToCartButtons {
         return new InlineKeyboardMarkup(buttons);
     }
 
-    public static InlineKeyboardMarkup createQuantityKeyboard(int productId, int quantity) {
+    public static InlineKeyboardMarkup createQuantityKeyboard(int productId, int quantity, String callback) {
+        return createQuantityKeyboard(productId, quantity, callback, 1);
+    }
+
+    public static InlineKeyboardMarkup createQuantityKeyboard(int productId, int quantity, String callback, int start) {
         List<List<InlineKeyboardButton>> keyboardRows = new ArrayList<>();
 
-        for (int i = 1; i <= 10; i++) {
+//        Если клавиатура с выбором количества запущена из каталога, будут показаны кнопки от 1 до 10
+//        А если из корзины, то есть нужно изменить количество(скорее уменьшить), то от 0 до 9
+        for (int i = start; i < start + 10; i++) {
 
-            if (i % 5 == 1) {
+            if ((i + 1 - start) % 5 == 1) {
                 keyboardRows.add(new ArrayList<>());
             }
             InlineKeyboardButton button = new InlineKeyboardButton();
             if (quantity >= i) {
                 button.setText(i + " шт.");
-                button.setCallbackData(QUANTITY_CALLBACK + productId + "_" + i);
+                button.setCallbackData(callback + productId + "_" + i);
             } else {
                 button.setText(" ");
-                button.setCallbackData(LACK_OF_QUANTITY_CALLBACK + productId + "_" + i);
+                button.setCallbackData(BLANK_BUTTONS + productId + "_" + i);
             }
             keyboardRows.get(keyboardRows.size() - 1).add(button);
 
