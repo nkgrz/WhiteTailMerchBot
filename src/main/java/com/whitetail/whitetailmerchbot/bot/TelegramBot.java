@@ -30,11 +30,13 @@ import java.util.List;
 import static com.whitetail.whitetailmerchbot.bot.buttons.AddToCartButtons.createAddToCartButtons;
 import static com.whitetail.whitetailmerchbot.bot.buttons.AddToCartButtons.createQuantityKeyboard;
 import static com.whitetail.whitetailmerchbot.bot.buttons.BackButtons.*;
+import static com.whitetail.whitetailmerchbot.bot.buttons.CartKeyboardBuilder.changeCartKeyboard;
 import static com.whitetail.whitetailmerchbot.bot.buttons.CartKeyboardBuilder.createCartKeyboard;
 import static com.whitetail.whitetailmerchbot.bot.buttons.MainMenuKeyboardBuilder.createMenuKeyboard;
+import static com.whitetail.whitetailmerchbot.bot.buttons.ProductKeyboardBuilder.createProductKeyboard;
 import static com.whitetail.whitetailmerchbot.bot.constants.BotMessages.*;
 import static com.whitetail.whitetailmerchbot.bot.constants.ButtonsCallback.*;
-import static com.whitetail.whitetailmerchbot.service.CartBuilder.cartItemsToString;
+import static com.whitetail.whitetailmerchbot.service.CartBuilder.*;
 import static com.whitetail.whitetailmerchbot.service.OrdersBuilder.orderItemsToString;
 
 
@@ -96,7 +98,7 @@ public class TelegramBot extends TelegramLongPollingBot {
                     userService.registerUser(chatId, tgUser.getUserName() == null ? fullName : tgUser.getUserName());
                     sendMessage(chatId, "Привет, " + fullName + "! \uD83D\uDE42\n" + WELCOME_MESSAGE);
                 case "/menu":
-                    sendMenu(chatId);
+                    sendMessage(chatId, MAIN_MENU_TEXT, createMenuKeyboard());
                     break;
                 case "/help":
                     sendMessage(chatId, HELP_MESSAGE);
@@ -117,35 +119,35 @@ public class TelegramBot extends TelegramLongPollingBot {
             sendProductDetails(chatId, messageId, productId);
         } else if (callbackData.startsWith(ADD_TO_CART_CALLBACK)) {
             int productId = Integer.parseInt(callbackData.substring(ADD_TO_CART_CALLBACK.length()));
-            deleteOldMessages(chatId, messageId);
             int quantityProduct = productService.getQuantityOfProduct(productId);
-            sendMessage(chatId,
-                    ADD_TO_CART_TEXT + quantityProduct,
-                    createQuantityKeyboard(productId, quantityProduct));
+            deleteOldMessages(chatId, messageId);
+            sendMessage(chatId, ADD_TO_CART_TEXT + quantityProduct,
+                    createQuantityKeyboard(productId, quantityProduct, QUANTITY_CALLBACK));
         } else if (callbackData.startsWith(QUANTITY_CALLBACK)) {
-            checkingEnoughProduct(update, chatId, messageId, QUANTITY_CALLBACK);
-        } else if (callbackData.startsWith(LACK_OF_QUANTITY_CALLBACK)) {
-            checkingEnoughProduct(update, chatId, messageId, LACK_OF_QUANTITY_CALLBACK);
+            setQuantityProductInCart(update, QUANTITY_CALLBACK);
+        } else if (callbackData.startsWith(CHANGE_QUANTITY_FROM_CART_CALLBACK)) {
+            int productId = Integer.parseInt(callbackData.substring(CHANGE_QUANTITY_FROM_CART_CALLBACK.length()));
+            int quantityProduct = productService.getQuantityOfProduct(productId);
+            String msgToChange = "Введите количество товара «" +
+                    productService.getProductById(productId).getName() + "»\nДоступно: " + quantityProduct;
+            executeEditMessageText(chatId, messageId, msgToChange, createQuantityKeyboard(productId, quantityProduct, CHANGE_QUANTITY_ITEM_FROM_CART_CALLBACK, 0));
+        } else if (callbackData.startsWith(CHANGE_QUANTITY_ITEM_FROM_CART_CALLBACK)) {
+            setQuantityProductInCart(update, CHANGE_QUANTITY_ITEM_FROM_CART_CALLBACK);
         }
 
         switch (callbackData) {
             case CATALOG_CALLBACK:
                 List<Product> products = productService.getAllProducts();
                 if (update.getCallbackQuery().getMessage().hasText()) {
-                    var buttonsCatalog = ProductKeyboardBuilder.createKeyboard(products);
+                    var buttonsCatalog = createProductKeyboard(products);
                     executeEditMessageText(chatId, messageId, CATALOG_MESSAGE, buttonsCatalog);
                 } else {
                     deleteOldMessages(chatId, messageId);
-                    sendMessage(chatId, CATALOG_MESSAGE, ProductKeyboardBuilder.createKeyboard(products));
+                    sendMessage(chatId, CATALOG_MESSAGE, createProductKeyboard(products));
                 }
                 break;
             case CART_CALLBACK:
-                List<CartItem> cartItems = cartService.findCartItemsByUserId(chatId);
-                if (!cartItems.isEmpty()) {
-                    executeEditMessageText(chatId, messageId, cartItemsToString(cartItems), createCartKeyboard());
-                } else {
-                    executeEditMessageText(chatId, messageId, CART_IS_EMPTY, createBackAndMainButtons());
-                }
+                returnCart(chatId, messageId);
                 break;
             case HISTORY_CALLBACK:
                 List<Order> orders = orderService.findAll(chatId);
@@ -161,33 +163,41 @@ public class TelegramBot extends TelegramLongPollingBot {
                     executeEditMessageText(chatId, messageId, MAIN_MENU_TEXT, createMenuKeyboard());
                 } else {
                     deleteOldMessages(chatId, messageId);
-                    sendMenu(chatId);
+                    sendMessage(chatId, MAIN_MENU_TEXT, createMenuKeyboard());
                 }
+                break;
+            case CHANGE_BASKET_CALLBACK:
+                List<CartItem> cartItemsChange = cartService.findCartItemsByUserId(chatId);
+                String messageToChange = changeCartItemsToString(cartItemsChange);
+                executeEditMessageText(chatId, messageId, messageToChange, changeCartKeyboard(cartItemsChange));
+                break;
+            case BLANK_BUTTONS:
                 break;
         }
     }
 
-    private void checkingEnoughProduct(Update update, long chatId, int messageId, String callback) {
+    private void returnCart(long chatId, int messageId) {
+        List<CartItem> cartItems = cartService.findCartItemsByUserId(chatId);
+        if (!cartItems.isEmpty()) {
+            executeEditMessageText(chatId, messageId, cartItemsToString(cartItems), createCartKeyboard());
+        } else {
+            executeEditMessageText(chatId, messageId, CART_IS_EMPTY, createBackAndMainButtons());
+        }
+    }
+
+    private void setQuantityProductInCart(Update update, String callback) {
+        int messageId = update.getCallbackQuery().getMessage().getMessageId();
+        long chatId = update.getCallbackQuery().getMessage().getChatId();
         String callbackData = update.getCallbackQuery().getData();
         String[] parts = callbackData.substring(callback.length()).split("_");
         int productId = Integer.parseInt(parts[0]);
         int quantity = Integer.parseInt(parts[1]);
-        int quantityProduct = productService.getQuantityOfProduct(productId);
-        if (quantityProduct >= quantity) {
+        if (callbackData.startsWith(CHANGE_QUANTITY_ITEM_FROM_CART_CALLBACK)) {
+            cartService.setQuantity(chatId, productId, quantity);
+            returnCart(chatId, messageId);
+        } else {
             cartService.addToCart(chatId, productId, quantity);
             executeEditMessageText(chatId, messageId, PRODUCT_ADD_TO_CART_TEXT, createMenuKeyboard());
-        } else {
-            editErrorMessageCart(update, chatId, messageId, productId, quantityProduct);
-        }
-    }
-
-    private void editErrorMessageCart(Update update, long chatId, int messageId, int productId, int quantityProduct) {
-        String messageError = ERROR_ADD_TO_CART_TEXT + quantityProduct;
-        if (update.getCallbackQuery().getMessage().getText().equals(messageError)) {
-            deleteOldMessages(chatId, messageId);
-            sendMessage(chatId, messageError, createQuantityKeyboard(productId, quantityProduct));
-        } else {
-            executeEditMessageText(chatId, messageId, messageError, createQuantityKeyboard(productId, quantityProduct));
         }
     }
 
@@ -213,7 +223,7 @@ public class TelegramBot extends TelegramLongPollingBot {
         Product product = productService.getProductById(productId);
         deleteOldMessages(chatId, messageId);
         String caption = product.getName() + "\n\n" + product.getDescription()
-                + "\n\nЦена: " + product.getPrice() + " руб.";
+                + "\n\nЦена: " + formatPrice(product.getPrice());
 
         SendPhoto photo = new SendPhoto();
         photo.setChatId(chatId);
@@ -241,10 +251,6 @@ public class TelegramBot extends TelegramLongPollingBot {
         } catch (TelegramApiException e) {
             log.error(e.getMessage());
         }
-    }
-
-    private void sendMenu(long chatId) {
-        sendMessage(chatId, MAIN_MENU_TEXT, createMenuKeyboard());
     }
 
     private void sendMessage(long chatId, String textToSend) {
