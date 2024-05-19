@@ -37,6 +37,21 @@ public class CartService {
         }
     }
 
+    public void setQuantity(long chatId, int productId, int quantity) {
+        if (quantity <= 0) {
+            deleteFromCart(chatId, productId);
+        } else {
+            CartItem cartItem = cartItemRepository.findCartItemByUserChatIdAndProductProductId(chatId, productId);
+            cartItem.setQuantity(quantity);
+            cartItemRepository.save(cartItem);
+        }
+    }
+
+    public void deleteFromCart(long chatId, int productId) {
+        CartItem cartItem = cartItemRepository.findCartItemByUserChatIdAndProductProductId(chatId, productId);
+        cartItemRepository.delete(cartItem);
+    }
+
     public List<CartItem> findCartItemsByUserId(Long chatId) {
         return cartItemRepository.findCartItemsByUserChatId(chatId);
     }
