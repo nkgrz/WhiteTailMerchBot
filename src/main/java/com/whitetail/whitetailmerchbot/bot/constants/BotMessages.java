@@ -9,7 +9,5 @@ public class BotMessages {
     public static final String ORDERS_IS_EMPTY = "Заказов пока не было";
     public static final String MAIN_MENU_TEXT = "Главное меню";
     public static final String PRODUCT_ADD_TO_CART_TEXT = "Товар успешно добавлен в корзину";
-    public static final String ERROR_ADD_TO_CART_TEXT = "Такого количества товара нет в наличии.\nПопробуйте еще раз.\nДоступно: ";
-
 }
 
