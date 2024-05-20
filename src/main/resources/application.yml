@@ -10,6 +10,7 @@ spring:
             maximum-pool-size: 100
     jpa:
         hibernate:
+#            TODO сделать ddl-auto: validate
             ddl-auto: update
         database-platform: org.hibernate.dialect.MySQL8Dialect
     liquibase:
@@ -17,6 +18,7 @@ spring:
 
 bot:
     name: "White Tail"
+#    TODO вынести чувствительные данные в переменные окружения, Docker
     token: "7008020256:AAFiBEg786PHYvNvSIIwagT9IBV8sx1FHmw"
     owner: 214997124
 
