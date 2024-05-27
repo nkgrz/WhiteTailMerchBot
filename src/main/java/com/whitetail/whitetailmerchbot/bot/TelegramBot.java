@@ -1,6 +1,5 @@
 package com.whitetail.whitetailmerchbot.bot;
 
-import com.whitetail.whitetailmerchbot.bot.buttons.ProductKeyboardBuilder;
 import com.whitetail.whitetailmerchbot.entity.CartItem;
 import com.whitetail.whitetailmerchbot.entity.Order;
 import com.whitetail.whitetailmerchbot.entity.Product;
@@ -45,6 +44,7 @@ import static com.whitetail.whitetailmerchbot.service.OrdersBuilder.orderItemsTo
 public class TelegramBot extends TelegramLongPollingBot {
 
     // TODO как делать бекап БД???
+    // TODO вынести константы в отдельный файл который можно менять независимо от кода ?
     final BotConfig botConfig;
     private final ProductService productService;
     private final OrderService orderService;
@@ -90,22 +90,19 @@ public class TelegramBot extends TelegramLongPollingBot {
         String lastName = tgUser.getLastName();
         String fullName = tgUser.getFirstName() + (lastName != null ? " " + lastName : "");
 
-        if (messageText.startsWith("/send") && botConfig.getOwnerId() == chatId) {
+        if (messageText.startsWith("/send") && botConfig.getOwner() == chatId) {
             sendMessageToAllUsers(messageText);
         } else {
-            switch (messageText) {
-                case "/start":
+            String response = switch (messageText) {
+                case "/start" -> {
                     userService.registerUser(chatId, tgUser.getUserName() == null ? fullName : tgUser.getUserName());
-                    sendMessage(chatId, "Привет, " + fullName + "! \uD83D\uDE42\n" + WELCOME_MESSAGE);
-                case "/menu":
-                    sendMessage(chatId, MAIN_MENU_TEXT, createMenuKeyboard());
-                    break;
-                case "/help":
-                    sendMessage(chatId, HELP_MESSAGE);
-                    break;
-                default:
-                    sendMessage(chatId, "Пока команда не поддерживается");
-            }
+                    yield "Привет, " + fullName + "! \uD83D\uDE42\n" + WELCOME_MESSAGE;
+                }
+                case "/menu" -> MAIN_MENU_TEXT;
+                case "/help" -> HELP_MESSAGE;
+                default -> "Пока команда не поддерживается";
+            };
+            sendMessage(chatId, response, messageText.equals("/menu") ? createMenuKeyboard() : null);
         }
     }
 
@@ -115,65 +112,84 @@ public class TelegramBot extends TelegramLongPollingBot {
         long chatId = update.getCallbackQuery().getMessage().getChatId();
 
         if (callbackData.startsWith(PRODUCT_DETAILS_CALLBACK)) {
-            int productId = Integer.parseInt(callbackData.substring(PRODUCT_DETAILS_CALLBACK.length()));
-            sendProductDetails(chatId, messageId, productId);
+            handleProductDetailsCallback(callbackData, chatId, messageId);
         } else if (callbackData.startsWith(ADD_TO_CART_CALLBACK)) {
-            int productId = Integer.parseInt(callbackData.substring(ADD_TO_CART_CALLBACK.length()));
-            int quantityProduct = productService.getQuantityOfProduct(productId);
-            deleteOldMessages(chatId, messageId);
-            sendMessage(chatId, ADD_TO_CART_TEXT + quantityProduct,
-                    createQuantityKeyboard(productId, quantityProduct, QUANTITY_CALLBACK));
+            handleAddToCartCallback(callbackData, chatId, messageId);
         } else if (callbackData.startsWith(QUANTITY_CALLBACK)) {
             setQuantityProductInCart(update, QUANTITY_CALLBACK);
         } else if (callbackData.startsWith(CHANGE_QUANTITY_FROM_CART_CALLBACK)) {
-            int productId = Integer.parseInt(callbackData.substring(CHANGE_QUANTITY_FROM_CART_CALLBACK.length()));
-            int quantityProduct = productService.getQuantityOfProduct(productId);
-            String msgToChange = "Введите количество товара «" +
-                    productService.getProductById(productId).getName() + "»\nДоступно: " + quantityProduct;
-            executeEditMessageText(chatId, messageId, msgToChange, createQuantityKeyboard(productId, quantityProduct, CHANGE_QUANTITY_ITEM_FROM_CART_CALLBACK, 0));
+            handleChangeQuantityFromCartCallback(callbackData, chatId, messageId);
         } else if (callbackData.startsWith(CHANGE_QUANTITY_ITEM_FROM_CART_CALLBACK)) {
             setQuantityProductInCart(update, CHANGE_QUANTITY_ITEM_FROM_CART_CALLBACK);
         }
 
         switch (callbackData) {
-            case CATALOG_CALLBACK:
-                List<Product> products = productService.getAllProducts();
-                if (update.getCallbackQuery().getMessage().hasText()) {
-                    var buttonsCatalog = createProductKeyboard(products);
-                    executeEditMessageText(chatId, messageId, CATALOG_MESSAGE, buttonsCatalog);
-                } else {
-                    deleteOldMessages(chatId, messageId);
-                    sendMessage(chatId, CATALOG_MESSAGE, createProductKeyboard(products));
-                }
-                break;
-            case CART_CALLBACK:
-                returnCart(chatId, messageId);
-                break;
-            case HISTORY_CALLBACK:
-                List<Order> orders = orderService.findAll(chatId);
-                if (!orders.isEmpty()) {
-                    String ordersString = orderItemsToString(orders);
-                    executeEditMessageText(chatId, messageId, ordersString, createBackAndMainButtons());
-                } else {
-                    executeEditMessageText(chatId, messageId, ORDERS_IS_EMPTY, createBackAndMainButtons());
-                }
-                break;
-            case BACK_TO_MENU_CALLBACK:
-                if (update.getCallbackQuery().getMessage().hasText()) {
-                    executeEditMessageText(chatId, messageId, MAIN_MENU_TEXT, createMenuKeyboard());
-                } else {
-                    deleteOldMessages(chatId, messageId);
-                    sendMessage(chatId, MAIN_MENU_TEXT, createMenuKeyboard());
-                }
-                break;
-            case CHANGE_BASKET_CALLBACK:
-                List<CartItem> cartItemsChange = cartService.findCartItemsByUserId(chatId);
-                String messageToChange = changeCartItemsToString(cartItemsChange);
-                executeEditMessageText(chatId, messageId, messageToChange, changeCartKeyboard(cartItemsChange));
-                break;
-            case BLANK_BUTTONS:
-                break;
+            case CATALOG_CALLBACK -> handleCatalogCallback(chatId, messageId, update);
+            case CART_CALLBACK -> returnCart(chatId, messageId);
+            case HISTORY_CALLBACK -> handleHistoryCallback(chatId, messageId, update);
+            case BACK_TO_MENU_CALLBACK -> handleBackToMenuCallback(chatId, messageId, update);
+            case CHANGE_BASKET_CALLBACK -> handleChangeBasketCallback(chatId, messageId);
+            case BLANK_BUTTONS -> {
+                // No action needed
+            }
         }
+    }
+
+    private void handleProductDetailsCallback(String callbackData, long chatId, int messageId) {
+        int productId = Integer.parseInt(callbackData.substring(PRODUCT_DETAILS_CALLBACK.length()));
+        sendProductDetails(chatId, messageId, productId);
+    }
+
+    private void handleAddToCartCallback(String callbackData, long chatId, int messageId) {
+        int productId = Integer.parseInt(callbackData.substring(ADD_TO_CART_CALLBACK.length()));
+        int quantityProduct = productService.getQuantityOfProduct(productId);
+        deleteOldMessages(chatId, messageId);
+        sendMessage(chatId, ADD_TO_CART_TEXT + quantityProduct,
+                createQuantityKeyboard(productId, quantityProduct, QUANTITY_CALLBACK));
+    }
+
+    private void handleChangeQuantityFromCartCallback(String callbackData, long chatId, int messageId) {
+        int productId = Integer.parseInt(callbackData.substring(CHANGE_QUANTITY_FROM_CART_CALLBACK.length()));
+        int quantityProduct = productService.getQuantityOfProduct(productId);
+        String msgToChange = "Введите количество товара «" +
+                productService.getProductById(productId).getName() + "»\nДоступно: " + quantityProduct;
+        executeEditMessageText(chatId, messageId, msgToChange, createQuantityKeyboard(productId, quantityProduct, CHANGE_QUANTITY_ITEM_FROM_CART_CALLBACK, 0));
+    }
+
+    private void handleCatalogCallback(long chatId, int messageId, Update update) {
+        List<Product> products = productService.getAllProducts();
+        if (update.getCallbackQuery().getMessage().hasText()) {
+            var catalogButtons = createProductKeyboard(products);
+            executeEditMessageText(chatId, messageId, CATALOG_MESSAGE, catalogButtons);
+        } else {
+            deleteOldMessages(chatId, messageId);
+            sendMessage(chatId, CATALOG_MESSAGE, createProductKeyboard(products));
+        }
+    }
+
+    private void handleHistoryCallback(long chatId, int messageId, Update update) {
+        List<Order> orders = orderService.findAll(chatId);
+        if (!orders.isEmpty()) {
+            String ordersString = orderItemsToString(orders);
+            executeEditMessageText(chatId, messageId, ordersString, createBackAndMainButtons());
+        } else {
+            executeEditMessageText(chatId, messageId, ORDERS_IS_EMPTY, createBackAndMainButtons());
+        }
+    }
+
+    private void handleBackToMenuCallback(long chatId, int messageId, Update update) {
+        if (update.getCallbackQuery().getMessage().hasText()) {
+            executeEditMessageText(chatId, messageId, MAIN_MENU_TEXT, createMenuKeyboard());
+        } else {
+            deleteOldMessages(chatId, messageId);
+            sendMessage(chatId, MAIN_MENU_TEXT, createMenuKeyboard());
+        }
+    }
+
+    private void handleChangeBasketCallback(long chatId, int messageId) {
+        List<CartItem> cartItemsChange = cartService.findCartItemsByUserId(chatId);
+        String messageToChange = changeCartItemsToString(cartItemsChange);
+        executeEditMessageText(chatId, messageId, messageToChange, changeCartKeyboard(cartItemsChange));
     }
 
     private void returnCart(long chatId, int messageId) {
@@ -275,6 +291,6 @@ public class TelegramBot extends TelegramLongPollingBot {
 
     @Override
     public String getBotUsername() {
-        return botConfig.getBotName();
+        return botConfig.getName();
     }
 }
