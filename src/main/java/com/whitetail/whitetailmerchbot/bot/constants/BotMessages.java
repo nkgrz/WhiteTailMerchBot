@@ -10,4 +10,3 @@ public class BotMessages {
     public static final String MAIN_MENU_TEXT = "Главное меню";
     public static final String PRODUCT_ADD_TO_CART_TEXT = "Товар успешно добавлен в корзину";
 }
-
