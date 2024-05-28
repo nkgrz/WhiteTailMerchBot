@@ -32,8 +32,4 @@ public class Order {
     @Column(name = "status")
     private String status;
 
-    @ElementCollection
-    @CollectionTable(name = "order_products", joinColumns = @JoinColumn(name = "order_id"))
-    @Column(name = "product")
-    private List<String> products;
 }
