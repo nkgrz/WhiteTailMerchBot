@@ -40,6 +40,16 @@ databaseChangeLog:
                   type: int
 
   - changeSet:
+        id: rename-column-in-products-table
+        author: nkgrz
+        changes:
+            - renameColumn:
+                  tableName: products
+                  oldColumnName: count
+                  newColumnName: quantity
+                  columnDataType: int
+
+  - changeSet:
       id: add-image-link-to-products
       author: nkgrz
       changes:

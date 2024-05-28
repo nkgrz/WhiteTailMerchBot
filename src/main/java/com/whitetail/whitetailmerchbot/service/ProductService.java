@@ -21,16 +21,16 @@ public class ProductService {
     }
 
     public int getQuantityOfProduct(int productId) {
-        return productsRepository.findById(productId).get().getCount();
+        return productsRepository.findById(productId).get().getQuantity();
     }
 
     public boolean setQuantityOfProduct(int productId, int quantity) {
         Product product = productsRepository.findById(productId).get();
-        int productQuantity = product.getCount();
+        int productQuantity = product.getQuantity();
         if (productQuantity < quantity) {
             return false;
         } else {
-            product.setCount(productQuantity - quantity);
+            product.setQuantity(productQuantity - quantity);
             return true;
         }
     }
