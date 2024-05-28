@@ -4,10 +4,8 @@ import com.whitetail.whitetailmerchbot.entity.CartItem;
 import com.whitetail.whitetailmerchbot.entity.Order;
 import com.whitetail.whitetailmerchbot.entity.Product;
 import com.whitetail.whitetailmerchbot.entity.User;
-import com.whitetail.whitetailmerchbot.service.CartService;
-import com.whitetail.whitetailmerchbot.service.OrderService;
-import com.whitetail.whitetailmerchbot.service.ProductService;
-import com.whitetail.whitetailmerchbot.service.UserService;
+import com.whitetail.whitetailmerchbot.service.*;
+import freemarker.template.TemplateException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -24,6 +22,7 @@ import org.telegram.telegrambots.meta.api.objects.commands.scope.BotCommandScope
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
+import java.io.IOException;
 import java.util.List;
 
 import static com.whitetail.whitetailmerchbot.bot.buttons.AddToCartButtons.createAddToCartButtons;
@@ -35,9 +34,7 @@ import static com.whitetail.whitetailmerchbot.bot.buttons.MainMenuKeyboardBuilde
 import static com.whitetail.whitetailmerchbot.bot.buttons.ProductKeyboardBuilder.createProductKeyboard;
 import static com.whitetail.whitetailmerchbot.bot.constants.BotMessages.*;
 import static com.whitetail.whitetailmerchbot.bot.constants.ButtonsCallback.*;
-import static com.whitetail.whitetailmerchbot.service.CartBuilder.*;
 import static com.whitetail.whitetailmerchbot.service.OrdersBuilder.orderItemsToString;
-
 
 @Slf4j
 @Component
@@ -50,15 +47,17 @@ public class TelegramBot extends TelegramLongPollingBot {
     private final OrderService orderService;
     private final UserService userService;
     private final CartService cartService;
+    private final TemplateService templateService;
 
     @Autowired
     public TelegramBot(BotConfig botConfig, ProductService productService,
-                       OrderService orderService, UserService userService, CartService cartService) {
+                       OrderService orderService, UserService userService, CartService cartService, TemplateService templateService) {
         super(botConfig.getToken());
         this.botConfig = botConfig;
         this.productService = productService;
         this.orderService = orderService;
         this.userService = userService;
+        this.templateService = templateService;
 
         List<BotCommand> botCommandList = List.of(
                 new BotCommand("/start", "Запуск бота"),
@@ -188,14 +187,24 @@ public class TelegramBot extends TelegramLongPollingBot {
 
     private void handleChangeBasketCallback(long chatId, int messageId) {
         List<CartItem> cartItemsChange = cartService.findCartItemsByUserId(chatId);
-        String messageToChange = changeCartItemsToString(cartItemsChange);
-        executeEditMessageText(chatId, messageId, messageToChange, changeCartKeyboard(cartItemsChange));
+        try {
+            String messageToChange = templateService.createChangeCartMessage(cartItemsChange);
+            executeEditMessageText(chatId, messageId, messageToChange, changeCartKeyboard(cartItemsChange));
+        } catch (IOException | TemplateException e) {
+            log.error(e.getMessage());
+            executeEditMessageText(chatId, messageId, "Ошибка при создании корзины", createCartKeyboard());
+        }
     }
 
     private void returnCart(long chatId, int messageId) {
         List<CartItem> cartItems = cartService.findCartItemsByUserId(chatId);
         if (!cartItems.isEmpty()) {
-            executeEditMessageText(chatId, messageId, cartItemsToString(cartItems), createCartKeyboard());
+            try {
+                executeEditMessageText(chatId, messageId, templateService.createCartMessage(cartItems), createCartKeyboard());
+            } catch (IOException | TemplateException e) {
+                log.error(e.getMessage());
+                executeEditMessageText(chatId, messageId, "Ошибка при создании корзины", createCartKeyboard());
+            }
         } else {
             executeEditMessageText(chatId, messageId, CART_IS_EMPTY, createBackAndMainButtons());
         }
@@ -238,13 +247,12 @@ public class TelegramBot extends TelegramLongPollingBot {
     private void sendProductDetails(long chatId, int messageId, int productId) {
         Product product = productService.getProductById(productId);
         deleteOldMessages(chatId, messageId);
-        String caption = product.getName() + "\n\n" + product.getDescription()
-                + "\n\nЦена: " + formatPrice(product.getPrice());
 
         SendPhoto photo = new SendPhoto();
         photo.setChatId(chatId);
         photo.setPhoto(new InputFile(product.getImageLink()));
-        photo.setCaption(caption);
+        photo.setCaption(createProductDetailsMessage(product));
+        photo.setParseMode("HTML");
         photo.setReplyMarkup(createAddToCartButtons(productId));
 
         try {
@@ -254,12 +262,22 @@ public class TelegramBot extends TelegramLongPollingBot {
         }
     }
 
+    private String createProductDetailsMessage(Product product) {
+        try {
+            return templateService.createProductDetailsMessage(product);
+        } catch (IOException | TemplateException e) {
+            log.error(e.getMessage());
+            return "Ошибка при создании карточки товара";
+        }
+    }
+
     private void executeEditMessageText(long chatId, int messageId, String text, InlineKeyboardMarkup inlineKeyboardMarkup) {
         EditMessageText editMessageText = new EditMessageText();
         editMessageText.setChatId(chatId);
         editMessageText.setMessageId(messageId);
 
         editMessageText.setText(text);
+        editMessageText.setParseMode("HTML");
         editMessageText.setReplyMarkup(inlineKeyboardMarkup == null ? buttonToMarkup(createBackButton()) : inlineKeyboardMarkup);
 
         try {
@@ -277,6 +295,7 @@ public class TelegramBot extends TelegramLongPollingBot {
         SendMessage message = new SendMessage();
         message.setChatId(chatId);
         message.setText(textToSend);
+        message.setParseMode("HTML");
 
         if (markup != null) {
             message.setReplyMarkup(markup);
