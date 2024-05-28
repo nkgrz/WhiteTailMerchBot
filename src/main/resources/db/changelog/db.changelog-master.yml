@@ -101,13 +101,13 @@ databaseChangeLog:
             - createTable:
                 tableName: cart_items
                 columns:
-                    #              тут нет столбца cart_item_id, но в таблице он есть
-                    #              в будущем могут возникнуть проблемы
-                    #              - column:
-                    #                    name: cart_item_id
-                    #                    type: BIGINT
-                    #                    constraints:
-                    #                      primaryKey: true
+                    # тут нет столбца cart_item_id, но в таблице он есть
+                    # в будущем могут возникнуть проблемы
+                    # - column:
+                    #       name: cart_item_id
+                    #       type: BIGINT
+                    #       constraints:
+                    #         primaryKey: true
                     - column:
                         name: chat_id
                         type: BIGINT
@@ -145,3 +145,21 @@ databaseChangeLog:
                     - column:
                         name: product
                         type: varchar(255)
+    - changeSet:
+        id: add-product-info-to-order-products
+        author: nkgrz
+        changes:
+            - addColumn:
+                tableName: order_products
+                columns:
+                    - column:
+                        name: quantity
+                        type: int
+                    - column:
+                        name: lot_price
+                        type: decimal(7,2)
+            - renameColumn:
+                tableName: order_products
+                oldColumnName: product
+                newColumnName: product_name
+                columnDataType: varchar(255)
