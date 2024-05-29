@@ -163,3 +163,28 @@ databaseChangeLog:
                 oldColumnName: product
                 newColumnName: product_name
                 columnDataType: varchar(255)
+    - changeSet:
+        id: add-id-autoIncrement-column
+        author: nkgrz
+        changes:
+            - addColumn:
+                tableName: order_products
+                columns:
+                    - column:
+                        name: id
+                        type: BIGINT
+                        constraints:
+                            primaryKey: true
+                            autoIncrement: true
+    - changeSet:
+        id: add-track-number-column
+        author: nkgrz
+        changes:
+            - addColumn:
+                  tableName: orders
+                  columns:
+                      - column:
+                            name: track_number
+                            type: varchar(255)
+        
+#       TODO: сдедать автоинкремент у order??
