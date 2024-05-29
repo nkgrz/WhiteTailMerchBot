@@ -32,4 +32,10 @@ public class Order {
     @Column(name = "status")
     private String status;
 
+    @Column(name = "track_number")
+    private String trackNumber;
+
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    @JoinColumn(name = "order_id", referencedColumnName = "order_id")
+    private List<OrderProduct> orderProducts;
 }
