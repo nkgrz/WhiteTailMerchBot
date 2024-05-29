@@ -1,18 +1,16 @@
 История ваших заказов:
 
 <#list orders as order>
-    ${order_index + 1}. Заказ от ${order.orderDate?string("dd.MM.yyyy")}
-    <#list order.items as item>
-        ${item.product.name} ${item.product.price} руб. (${item.quantity} шт.)
+    <b><#lt>${order_index + 1}. Заказ №${order.orderId} от ${order.orderDate?string("dd.MM.yyyy")}</b>
+    <#list order.orderProducts as item>
+        <#lt>${"    "}${item_index + 1}. ${item.productName} (${item.quantity} шт.) - ${item.lotPrice} руб.
     </#list>
-    Сумма заказа: ${order.total} руб.
-    Статус заказа: ${order.status}
-
-<#-- Добавить трек номер для отслеживания заказа -->
-<#-- order.trackNumber -->
-
-    <#if order_index + 1 != orders?size>
-    <#-- Если это не последний заказ, добавим пустую строку -->
-        <#lt>
+    <#lt>Сумма заказа: ${order.total} руб.
+    <#lt>Статус заказа: ${order.status}
+    <#if order.trackNumber?exists && order.trackNumber?has_content>
+        <#lt>Трек номер для отслеживания: ${order.trackNumber}
+    <#else>
+        <#lt>Ожидайте отправки товаров
     </#if>
+
 </#list>

@@ -1,6 +1,7 @@
 package com.whitetail.whitetailmerchbot.service;
 
 import com.whitetail.whitetailmerchbot.entity.CartItem;
+import com.whitetail.whitetailmerchbot.entity.Order;
 import com.whitetail.whitetailmerchbot.entity.Product;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
@@ -67,6 +68,19 @@ public class TemplateService {
         model.put("product", product);
 
         Template template = freemarkerConfig.getTemplate("productDetailsTemplate.ftl");
+
+        try (StringWriter out = new StringWriter()) {
+            template.process(model, out);
+            return out.toString();
+        }
+    }
+
+    public String createOrdersMessage(List<Order> orders) throws IOException, TemplateException {
+        Map<String, Object> model = new HashMap<>();
+
+        model.put("orders", orders);
+
+        Template template = freemarkerConfig.getTemplate("ordersTemplate.ftl");
 
         try (StringWriter out = new StringWriter()) {
             template.process(model, out);

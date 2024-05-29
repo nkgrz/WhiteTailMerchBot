@@ -34,7 +34,6 @@ import static com.whitetail.whitetailmerchbot.bot.buttons.MainMenuKeyboardBuilde
 import static com.whitetail.whitetailmerchbot.bot.buttons.ProductKeyboardBuilder.createProductKeyboard;
 import static com.whitetail.whitetailmerchbot.bot.constants.BotMessages.*;
 import static com.whitetail.whitetailmerchbot.bot.constants.ButtonsCallback.*;
-import static com.whitetail.whitetailmerchbot.service.OrdersBuilder.orderItemsToString;
 
 @Slf4j
 @Component
@@ -169,8 +168,12 @@ public class TelegramBot extends TelegramLongPollingBot {
     private void handleHistoryCallback(long chatId, int messageId, Update update) {
         List<Order> orders = orderService.findAll(chatId);
         if (!orders.isEmpty()) {
-            String ordersString = orderItemsToString(orders);
-            executeEditMessageText(chatId, messageId, ordersString, createBackAndMainButtons());
+            try {
+                executeEditMessageText(chatId, messageId,  templateService.createOrdersMessage(orders), createBackAndMainButtons());
+            } catch (IOException | TemplateException e) {
+                log.error(e.getMessage());
+                executeEditMessageText(chatId, messageId,  "Ошибка при получении списка заказов", createBackAndMainButtons());
+            }
         } else {
             executeEditMessageText(chatId, messageId, ORDERS_IS_EMPTY, createBackAndMainButtons());
         }
