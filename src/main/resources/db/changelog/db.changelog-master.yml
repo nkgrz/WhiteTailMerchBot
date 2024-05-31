@@ -69,6 +69,7 @@ databaseChangeLog:
                         type: BIGINT
                         constraints:
                             primaryKey: true
+                            autoIncrement: true
                     - column:
                         name: chat_id
                         type: BIGINT
@@ -186,5 +187,44 @@ databaseChangeLog:
                       - column:
                             name: track_number
                             type: varchar(255)
-        
-#       TODO: сдедать автоинкремент у order??
+    - changeSet:
+        id: create-shipping-details-table
+        author: nkgrz
+        changes:
+            - createTable:
+                tableName: shipping_details
+                columns:
+                    - column:
+                        name: id
+                        type: bigint
+                        autoIncrement: true
+                        constraints:
+                            primaryKey: true
+                            nullable: false
+                    - column:
+                        name: order_id
+                        type: BIGINT
+                        constraints:
+                            foreignKeyName: shipping_details_order_id_fk
+                            references: orders(order_id)
+                    - column:
+                        name: chat_id
+                        type: BIGINT
+                        constraints:
+                            foreignKeyName: shipping_details_chat_id_fk
+                            references: users(chat_id)
+                    - column:
+                        name: name
+                        type: varchar(255)
+                        constraints:
+                            nullable: false
+                    - column:
+                        name: phone_number
+                        type: varchar(20)
+                        constraints:
+                            nullable: false
+                    - column:
+                        name: shipping_address
+                        type: varchar(255)
+                        constraints:
+                            nullable: false
