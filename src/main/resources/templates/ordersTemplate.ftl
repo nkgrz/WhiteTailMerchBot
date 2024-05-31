@@ -9,6 +9,8 @@
     <#lt>Статус заказа: ${order.status}
     <#if order.trackNumber?exists && order.trackNumber?has_content>
         <#lt>Трек номер для отслеживания: ${order.trackNumber}
+    <#elseif order.status == "Заказ не оплачен">
+        <#lt>Для оплаты заказа свяжитесь с поддержкой
     <#else>
         <#lt>Ожидайте отправки товаров
     </#if>
