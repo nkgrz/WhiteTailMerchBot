@@ -8,6 +8,7 @@ import freemarker.template.Template;
 import freemarker.template.TemplateException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.telegram.telegrambots.meta.api.objects.payments.ShippingAddress;
 
 import java.io.IOException;
 import java.io.StringWriter;
@@ -39,7 +40,6 @@ public class TemplateService {
         model.put("totalQuantity", totalQuantity);
         model.put("costDelivery", COST_DELIVERY);
         model.put("totalPriceWithDelivery", totalPriceWithDelivery);
-        model.put("cartItemTotalPrice", calculateTotalPrice(cartItems));
 
         Template template = freemarkerConfig.getTemplate("cartItemsTemplate.ftl");
 
@@ -82,6 +82,54 @@ public class TemplateService {
 
         Template template = freemarkerConfig.getTemplate("ordersTemplate.ftl");
 
+        try (StringWriter out = new StringWriter()) {
+            template.process(model, out);
+            return out.toString();
+        }
+    }
+
+    public String createOrderDescription(List<CartItem> cartItems) throws IOException, TemplateException {
+        Map<String, Object> model = new HashMap<>();
+        BigDecimal totalPrice = calculateTotalPrice(cartItems);
+        BigDecimal totalPriceWithDelivery = totalPrice.add(BigDecimal.valueOf(COST_DELIVERY));
+        int totalQuantity = cartItems.stream().mapToInt(CartItem::getQuantity).sum();
+
+        model.put("totalQuantity", totalQuantity);
+        model.put("totalPrice", totalPrice);
+        model.put("costDelivery", COST_DELIVERY);
+        model.put("totalPriceWithDelivery", totalPriceWithDelivery);
+
+        Template template = freemarkerConfig.getTemplate("orderDescription.ftl");
+
+        try (StringWriter out = new StringWriter()) {
+            template.process(model, out);
+            return out.toString();
+        }
+    }
+
+    public String createShippingAddressMessage(ShippingAddress shippingAddress) throws IOException, TemplateException {
+        Map<String, Object> model = new HashMap<>();
+        model.put("state", shippingAddress.getState());
+        model.put("city", shippingAddress.getCity());
+        model.put("streetLine1", shippingAddress.getStreetLine1() == null ? "" : shippingAddress.getStreetLine1());
+        model.put("streetLine2", shippingAddress.getStreetLine2() == null ? "" : shippingAddress.getStreetLine2() + ", ");
+        model.put("postCode", shippingAddress.getPostCode());
+        Template template = freemarkerConfig.getTemplate("shippingAddress.ftl");
+
+        try (StringWriter out = new StringWriter()) {
+            template.process(model, out);
+            return out.toString();
+        }
+    }
+
+    public String createMessageToOwner(String name, String username, String addressTemplate, String phoneNumber, Order order) throws IOException, TemplateException {
+        Map<String, Object> model = new HashMap<>();
+        model.put("name", name);
+        model.put("username", username);
+        model.put("addressTemplate", addressTemplate);
+        model.put("phoneNumber", phoneNumber);
+        model.put("order", order);
+        Template template = freemarkerConfig.getTemplate("shippingDetailsToOwner.ftl");
         try (StringWriter out = new StringWriter()) {
             template.process(model, out);
             return out.toString();

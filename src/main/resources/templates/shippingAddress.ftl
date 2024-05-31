@@ -1,0 +1,1 @@
+${state} (обл), г. ${city}, ${streetLine1}, ${streetLine2}индекс: ${postCode}
