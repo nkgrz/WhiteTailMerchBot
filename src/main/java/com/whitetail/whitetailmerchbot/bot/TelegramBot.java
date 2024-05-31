@@ -10,7 +10,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
+import org.telegram.telegrambots.meta.api.methods.AnswerPreCheckoutQuery;
 import org.telegram.telegrambots.meta.api.methods.commands.SetMyCommands;
+import org.telegram.telegrambots.meta.api.methods.invoices.SendInvoice;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage;
@@ -19,10 +21,14 @@ import org.telegram.telegrambots.meta.api.objects.InputFile;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.commands.BotCommand;
 import org.telegram.telegrambots.meta.api.objects.commands.scope.BotCommandScopeDefault;
+import org.telegram.telegrambots.meta.api.objects.payments.LabeledPrice;
+import org.telegram.telegrambots.meta.api.objects.payments.PreCheckoutQuery;
+import org.telegram.telegrambots.meta.api.objects.payments.SuccessfulPayment;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.List;
 
 import static com.whitetail.whitetailmerchbot.bot.buttons.AddToCartButtons.createAddToCartButtons;
@@ -34,6 +40,7 @@ import static com.whitetail.whitetailmerchbot.bot.buttons.MainMenuKeyboardBuilde
 import static com.whitetail.whitetailmerchbot.bot.buttons.ProductKeyboardBuilder.createProductKeyboard;
 import static com.whitetail.whitetailmerchbot.bot.constants.BotMessages.*;
 import static com.whitetail.whitetailmerchbot.bot.constants.ButtonsCallback.*;
+import static com.whitetail.whitetailmerchbot.bot.constants.ButtonsText.COST_DELIVERY;
 
 @Slf4j
 @Component
@@ -47,16 +54,21 @@ public class TelegramBot extends TelegramLongPollingBot {
     private final UserService userService;
     private final CartService cartService;
     private final TemplateService templateService;
+    private final ShippingDetailsService shippingDetailsService;
 
     @Autowired
     public TelegramBot(BotConfig botConfig, ProductService productService,
-                       OrderService orderService, UserService userService, CartService cartService, TemplateService templateService) {
+                       OrderService orderService, UserService userService,
+                       CartService cartService, TemplateService templateService,
+                       ShippingDetailsService shippingDetailsService) {
         super(botConfig.getToken());
         this.botConfig = botConfig;
         this.productService = productService;
         this.orderService = orderService;
         this.userService = userService;
         this.templateService = templateService;
+        this.cartService = cartService;
+        this.shippingDetailsService = shippingDetailsService;
 
         List<BotCommand> botCommandList = List.of(
                 new BotCommand("/start", "Запуск бота"),
@@ -69,7 +81,6 @@ public class TelegramBot extends TelegramLongPollingBot {
         } catch (TelegramApiException e) {
             log.error(e.getMessage());
         }
-        this.cartService = cartService;
     }
 
     @Override
@@ -78,6 +89,10 @@ public class TelegramBot extends TelegramLongPollingBot {
             handleTextMessage(update);
         } else if (update.hasCallbackQuery()) {
             handleCallbackQuery(update);
+        } else if (update.hasPreCheckoutQuery()) {
+            handlePreCheckoutQuery(update.getPreCheckoutQuery());
+        } else if (update.getMessage().hasSuccessfulPayment()) {
+            handleSuccessfulPayment(update);
         }
     }
 
@@ -130,7 +145,108 @@ public class TelegramBot extends TelegramLongPollingBot {
             case BLANK_BUTTONS -> {
                 // No action needed
             }
+            case PLACE_ORDER_CALLBACK -> handlePlaceOrderCallback(update);
         }
+    }
+
+    private void handlePreCheckoutQuery(PreCheckoutQuery preCheckoutQuery) {
+        String payload = preCheckoutQuery.getInvoicePayload();
+        AnswerPreCheckoutQuery answerPreCheckoutQuery = new AnswerPreCheckoutQuery();
+        answerPreCheckoutQuery.setPreCheckoutQueryId(preCheckoutQuery.getId());
+        // TODO: Тут тоже надо проверять(или вообще только тут) что товаров достаточно
+        //  так как непонятно как долго пользователь будет оплачивать заказ
+        answerPreCheckoutQuery.setOk(true);
+        try {
+            execute(answerPreCheckoutQuery);
+        } catch (TelegramApiException e) {
+            log.error(e.getMessage());
+        }
+    }
+
+    private void handleSuccessfulPayment(Update update) {
+        Long chatId = update.getMessage().getChatId();
+        SuccessfulPayment successfulPayment = update.getMessage().getSuccessfulPayment();
+        Long orderId = Long.parseLong(successfulPayment.getInvoicePayload());
+        orderService.updateOrderStatus(orderId, "Заказ оплачен");
+
+        Order order = orderService.findOrderByOrderId(orderId);
+        String username = update.getMessage().getFrom().getUserName();
+
+        String name = successfulPayment.getOrderInfo().getName();
+        String phoneNumber = successfulPayment.getOrderInfo().getPhoneNumber();
+        var shippingAddress = successfulPayment.getOrderInfo().getShippingAddress();
+        String adressTemplate = "";
+        String messageToOwner = "";
+
+        shippingDetailsService.newShippingDetails(chatId, orderId, name, phoneNumber, adressTemplate);
+        productService.updateProductQuantity(orderId);
+
+        try {
+            adressTemplate = templateService.createShippingAddressMessage(shippingAddress);
+            messageToOwner = templateService.createMessageToOwner(name, username, adressTemplate, phoneNumber, order);
+        } catch (IOException | TemplateException e) {
+            log.error(e.getMessage());
+        }
+        sendConfirmationMessage(chatId, messageToOwner);
+    }
+
+    private void sendConfirmationMessage(Long chatId, String messageToOwner) {
+        sendMessage(chatId, "Ваш заказ успешно оплачен!", buttonToMarkup(createMainButton()));
+        sendMessage(botConfig.owner, messageToOwner);
+    }
+
+    private void handlePlaceOrderCallback(Update update) {
+        long chatId = update.getCallbackQuery().getMessage().getChatId();
+        int messageId = update.getCallbackQuery().getMessage().getMessageId();
+        List<CartItem> cartItems = cartService.findCartItemsByUserId(chatId);
+
+        if (!isEnoughProducts(cartItems)) {
+            returnCart(chatId, messageId);
+            return;
+        }
+
+        Order order = orderService.createOrder(chatId, cartItems);
+        cartService.clearCart(chatId);
+        Long orderId = order.getOrderId();
+        BigDecimal price = order.getTotal();
+        String description = "";
+        try {
+            description = templateService.createOrderDescription(cartItems);
+        } catch (IOException | TemplateException e) {
+            log.error(e.getMessage());
+        }
+
+        SendInvoice sendInvoice = SendInvoice.builder()
+                .chatId(chatId)
+                .needName(true)
+                .needPhoneNumber(true)
+                .needShippingAddress(true)
+                .title("Оплата заказа #" + orderId)
+                .providerToken(botConfig.providerToken)
+                .currency("RUB")
+                .payload(orderId.toString())
+                .description(description)
+                .prices(List.of(new LabeledPrice("Оплата заказа #" + orderId, price.intValue() * 100),
+                        new LabeledPrice("Доставка", COST_DELIVERY * 100)))
+                .startParameter("START_PAYLOAD").build();
+        try {
+            deleteOldMessages(chatId, update.getCallbackQuery().getMessage().getMessageId());
+            execute(sendInvoice);
+        } catch (TelegramApiException e) {
+            log.error(e.getMessage());
+        }
+    }
+
+    private boolean isEnoughProducts(List<CartItem> cartItems) {
+        boolean isEnough = true;
+        for (CartItem cartItem : cartItems) {
+            if (cartItem.getQuantity() > cartItem.getProduct().getQuantity()) {
+                cartItem.setQuantity(cartItem.getProduct().getQuantity());
+                cartService.saveCartItem(cartItem);
+                isEnough = false;
+            }
+        }
+        return isEnough;
     }
 
     private void handleProductDetailsCallback(String callbackData, long chatId, int messageId) {
@@ -169,10 +285,10 @@ public class TelegramBot extends TelegramLongPollingBot {
         List<Order> orders = orderService.findAll(chatId);
         if (!orders.isEmpty()) {
             try {
-                executeEditMessageText(chatId, messageId,  templateService.createOrdersMessage(orders), createBackAndMainButtons());
+                executeEditMessageText(chatId, messageId, templateService.createOrdersMessage(orders), createBackAndMainButtons());
             } catch (IOException | TemplateException e) {
                 log.error(e.getMessage());
-                executeEditMessageText(chatId, messageId,  "Ошибка при получении списка заказов", createBackAndMainButtons());
+                executeEditMessageText(chatId, messageId, "Ошибка при получении списка заказов", createBackAndMainButtons());
             }
         } else {
             executeEditMessageText(chatId, messageId, ORDERS_IS_EMPTY, createBackAndMainButtons());
