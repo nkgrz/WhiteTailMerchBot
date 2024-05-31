@@ -25,6 +25,7 @@ bot:
     #    TODO вынести чувствительные данные в переменные окружения, Docker
     token: "7008020256:AAFiBEg786PHYvNvSIIwagT9IBV8sx1FHmw"
     owner: 214997124
+    providerToken: 381764678:TEST:85689
 
 logging:
     file:
