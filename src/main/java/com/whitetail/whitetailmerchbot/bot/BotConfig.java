@@ -16,4 +16,6 @@ public class BotConfig {
     String token;
 
     long owner;
+
+    String providerToken;
 }
