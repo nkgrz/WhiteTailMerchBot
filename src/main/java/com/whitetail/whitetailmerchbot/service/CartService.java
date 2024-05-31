@@ -55,4 +55,13 @@ public class CartService {
     public List<CartItem> findCartItemsByUserId(Long chatId) {
         return cartItemRepository.findCartItemsByUserChatId(chatId);
     }
+
+    public void clearCart(long chatId) {
+        List<CartItem> cartItem = cartItemRepository.findCartItemsByUserChatId(chatId);
+        cartItemRepository.deleteAll(cartItem);
+    }
+
+    public void saveCartItem(CartItem cartItem) {
+        cartItemRepository.save(cartItem);
+    }
 }
