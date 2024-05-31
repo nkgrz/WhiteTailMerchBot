@@ -7,4 +7,5 @@ import java.util.List;
 
 public interface OrderRepository extends CrudRepository<Order, Long> {
     List<Order> findOrdersByUserChatId(Long chatId);
+    Order findOrderByOrderId(Long id);
 }
