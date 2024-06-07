@@ -24,8 +24,10 @@ databaseChangeLog:
                     - column:
                         name: product_id
                         type: int
+                        autoIncrement: true
                         constraints:
                             primaryKey: true
+                            nullable: false
                     - column:
                         name: name
                         type: varchar(255)
@@ -36,24 +38,8 @@ databaseChangeLog:
                         name: price
                         type: decimal(7,2)
                     - column:
-                        name: count
+                        name: quantity
                         type: int
-    - changeSet:
-        id: rename-column-in-products-table
-        author: nkgrz
-        changes:
-            - renameColumn:
-                tableName: products
-                oldColumnName: count
-                newColumnName: quantity
-                columnDataType: int
-    - changeSet:
-        id: add-image-link-to-products
-        author: nkgrz
-        changes:
-            - addColumn:
-                tableName: products
-                columns:
                     - column:
                         name: image_link
                         type: varchar(255)
@@ -67,9 +53,10 @@ databaseChangeLog:
                     - column:
                         name: order_id
                         type: BIGINT
+                        autoIncrement: true
                         constraints:
                             primaryKey: true
-                            autoIncrement: true
+                            nullable: false
                     - column:
                         name: chat_id
                         type: BIGINT
@@ -86,15 +73,8 @@ databaseChangeLog:
                         name: status
                         type: varchar(50)
                     - column:
-                        name: products
-                        type: json
-    - changeSet:
-        id: drop-products-column-from-orders
-        author: nkgrz
-        changes:
-            - dropColumn:
-                columnName: products
-                tableName: orders
+                        name: track_number
+                        type: varchar(255)
     - changeSet:
         id: create-cart-items-table
         author: nkgrz
@@ -102,13 +82,13 @@ databaseChangeLog:
             - createTable:
                 tableName: cart_items
                 columns:
-                    # тут нет столбца cart_item_id, но в таблице он есть
-                    # в будущем могут возникнуть проблемы
-                    # - column:
-                    #       name: cart_item_id
-                    #       type: BIGINT
-                    #       constraints:
-                    #         primaryKey: true
+                    - column:
+                         name: cart_item_id
+                         type: BIGINT
+                         autoIncrement: true
+                         constraints:
+                             primaryKey: true
+                             nullable: false
                     - column:
                         name: chat_id
                         type: BIGINT
@@ -132,6 +112,13 @@ databaseChangeLog:
                 tableName: order_products
                 columns:
                     - column:
+                        name: id
+                        type: BIGINT
+                        autoIncrement: true
+                        constraints:
+                            primaryKey: true
+                            nullable: false
+                    - column:
                         name: order_id
                         type: BIGINT
                         constraints:
@@ -144,49 +131,15 @@ databaseChangeLog:
                             foreignKeyName: order_products_productid_fk
                             references: products(product_id)
                     - column:
-                        name: product
+                        name: product_name
                         type: varchar(255)
-    - changeSet:
-        id: add-product-info-to-order-products
-        author: nkgrz
-        changes:
-            - addColumn:
-                tableName: order_products
-                columns:
                     - column:
                         name: quantity
                         type: int
                     - column:
                         name: lot_price
                         type: decimal(7,2)
-            - renameColumn:
-                tableName: order_products
-                oldColumnName: product
-                newColumnName: product_name
-                columnDataType: varchar(255)
-    - changeSet:
-        id: add-id-autoIncrement-column
-        author: nkgrz
-        changes:
-            - addColumn:
-                tableName: order_products
-                columns:
-                    - column:
-                        name: id
-                        type: BIGINT
-                        constraints:
-                            primaryKey: true
-                            autoIncrement: true
-    - changeSet:
-        id: add-track-number-column
-        author: nkgrz
-        changes:
-            - addColumn:
-                  tableName: orders
-                  columns:
-                      - column:
-                            name: track_number
-                            type: varchar(255)
+
     - changeSet:
         id: create-shipping-details-table
         author: nkgrz
