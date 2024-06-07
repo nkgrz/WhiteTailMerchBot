@@ -32,5 +32,7 @@ build/
 ### VS Code ###
 .vscode/
 src/main/resources/log/
+
+.env
 .DS_Store
 **/.DS_Store
