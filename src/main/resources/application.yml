@@ -3,8 +3,8 @@ spring:
         name: demoTGBot
     datasource:
         url: ${MYSQL_JDBC_URL:jdbc:mysql://localhost:3306/demo-tg-bot}
-        username: ${MYSQL_USERNAME:root}
-        password: ${MYSQL_PASSWORD:}
+        username: ${MYSQL_USERNAME}
+        password: ${MYSQL_PASSWORD}
         driver-class-name: com.mysql.cj.jdbc.Driver
         hikari:
             maximum-pool-size: 100
@@ -20,12 +20,10 @@ spring:
         suffix: .ftl
 
 bot:
-    name: "White Tail"
-    #    password: ${MYSQL_PASSWORD:} - example
-    #    TODO вынести чувствительные данные в переменные окружения, Docker
-    token: "7008020256:AAFiBEg786PHYvNvSIIwagT9IBV8sx1FHmw"
-    owner: 214997124
-    providerToken: 381764678:TEST:85689
+    name: "White Tail Merch Bot"
+    token: ${BOT_TOKEN}
+    owner: ${BOT_OWNER}
+    providerToken: ${BOT_PROVIDER_TOKEN}
 
 logging:
     file:
