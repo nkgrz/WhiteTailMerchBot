@@ -155,6 +155,7 @@ public class TelegramBot extends TelegramLongPollingBot {
         answerPreCheckoutQuery.setPreCheckoutQueryId(preCheckoutQuery.getId());
         // TODO: Тут тоже надо проверять(или вообще только тут) что товаров достаточно
         //  так как непонятно как долго пользователь будет оплачивать заказ
+        // TODO: Если товары есть в наличии, то подтвердить, иначе удалить заказ и вывести сообщение вернуться в корзину
         answerPreCheckoutQuery.setOk(true);
         try {
             execute(answerPreCheckoutQuery);

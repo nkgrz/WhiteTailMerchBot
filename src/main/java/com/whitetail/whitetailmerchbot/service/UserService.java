@@ -22,6 +22,7 @@ public class UserService {
             user.setUserName(userName);
             userRepository.save(user);
         }
+        // TODO: Если username устарел, обновить
     }
 
     public Iterable<User> getAllUsers() {
