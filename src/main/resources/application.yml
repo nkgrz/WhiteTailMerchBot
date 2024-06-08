@@ -1,6 +1,6 @@
 spring:
     application:
-        name: demoTGBot
+        name: whiteTailMerchBot
     datasource:
         url: ${MYSQL_JDBC_URL}${MYSQL_DATABASE_NAME}
         username: ${MYSQL_ROOT_USER}
@@ -24,8 +24,3 @@ bot:
     token: ${BOT_TOKEN}
     owner: ${BOT_OWNER}
     providerToken: ${BOT_PROVIDER_TOKEN}
-
-logging:
-    file:
-        path: /var/log/shopbot.com/demo-tg-bot
-        name: com.shopbot.demotgbot.DemoTgBot
