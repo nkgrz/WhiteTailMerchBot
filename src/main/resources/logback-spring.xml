@@ -1,7 +1,7 @@
 <configuration>
 
 <!--    <property name="HOME_LOG" value="/var/log/whitetail.com/white-tail-merch-bot/app.log"/>-->
-    <property name="HOME_LOG" value="/Users/nikita/Desktop/CURRENT_TASKS/JavaProjects/WhiteTailMerchBot/src/main/resources/log/app.log"/>
+    <property name="HOME_LOG" value="${PWD}/logs/app.log"/>
 
     <appender name="FILE-ROLLING" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>${HOME_LOG}</file>
