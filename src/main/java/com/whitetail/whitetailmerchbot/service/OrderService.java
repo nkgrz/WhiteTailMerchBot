@@ -5,6 +5,7 @@ import com.whitetail.whitetailmerchbot.entity.CartItem;
 import com.whitetail.whitetailmerchbot.entity.Order;
 import com.whitetail.whitetailmerchbot.entity.OrderProduct;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -30,8 +31,9 @@ public class OrderService {
         return orderRepository.save(order);
     }
 
-    public List<Order> findAll(Long chatId) {
-        return orderRepository.findOrdersByUserChatId(chatId);
+    public Slice<Order> findAll(Long chatId, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("orderDate").descending());
+        return orderRepository.findOrdersByUserChatId(chatId, pageable);
     }
 
     public Order findOrderByOrderId(Long orderId) {
