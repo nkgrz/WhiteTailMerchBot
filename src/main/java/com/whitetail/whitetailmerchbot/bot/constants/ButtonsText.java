@@ -8,9 +8,11 @@ public interface ButtonsText {
     String HISTORY_BUTTON_TEXT = "История заказов";
     String HELP_BUTTON_TEXT = "Задать вопрос";
     String REVIEWS_BUTTON_TEXT = "Отзывы";
-    String CALCULATE_DELIVERY_TEXT = "Посчитать доставку";
     String CHANGE_BASKET_TEXT = "Изменить корзину";
-    int COST_DELIVERY = 400;
     String PLACE_ORDER_TEXT = "Оформить заказ";
     String ADD_TO_CART_TEXT = "Добавить в корзину";
+    String BACK_EMOJI = "◀";
+    String NEXT_EMOJI = "▶";
+    int COST_DELIVERY = 400;
+    int MAX_NUMBER_ORDERS_PER_PAGE = 3;
 }
