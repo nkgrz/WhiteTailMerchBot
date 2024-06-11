@@ -1,7 +1,7 @@
 История ваших заказов:
 
-<#list orders?reverse as order>
-    <b><#lt>${order_index + 1}. Заказ №${order.orderId} от ${order.orderDate?string("dd.MM.yyyy")}</b>
+<#list orders as order>
+    <b><#lt>${index + order_index + 1}. Заказ №${order.orderId} от ${order.orderDate?string("dd.MM.yyyy")}</b>
     <#list order.orderProducts as item>
         <#lt>${"    "}${item_index + 1}. ${item.productName} (${item.quantity} шт.) - ${item.lotPrice} руб.
     </#list>

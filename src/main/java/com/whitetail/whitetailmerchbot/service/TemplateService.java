@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.Map;
 
 import static com.whitetail.whitetailmerchbot.bot.constants.ButtonsText.COST_DELIVERY;
+import static com.whitetail.whitetailmerchbot.bot.constants.ButtonsText.MAX_NUMBER_ORDERS_PER_PAGE;
 
 @Service
 public class TemplateService {
@@ -27,6 +28,12 @@ public class TemplateService {
     @Autowired
     public TemplateService(Configuration freemarkerConfig) {
         this.freemarkerConfig = freemarkerConfig;
+    }
+
+    public static BigDecimal calculateTotalPrice(List<CartItem> cartItems) {
+        return cartItems.stream()
+                .map(item -> item.getProduct().getPrice().multiply(BigDecimal.valueOf(item.getQuantity())))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
     public String createCartMessage(List<CartItem> cartItems) throws IOException, TemplateException {
@@ -75,10 +82,11 @@ public class TemplateService {
         }
     }
 
-    public String createOrdersMessage(List<Order> orders) throws IOException, TemplateException {
+    public String createOrdersMessage(List<Order> orders, int page) throws IOException, TemplateException {
         Map<String, Object> model = new HashMap<>();
 
         model.put("orders", orders);
+        model.put("index", page * MAX_NUMBER_ORDERS_PER_PAGE);
 
         Template template = freemarkerConfig.getTemplate("ordersTemplate.ftl");
 
@@ -134,11 +142,5 @@ public class TemplateService {
             template.process(model, out);
             return out.toString();
         }
-    }
-
-    public static BigDecimal calculateTotalPrice(List<CartItem> cartItems) {
-        return cartItems.stream()
-                .map(item -> item.getProduct().getPrice().multiply(BigDecimal.valueOf(item.getQuantity())))
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 }
