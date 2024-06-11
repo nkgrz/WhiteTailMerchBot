@@ -28,7 +28,6 @@ public class ProductKeyboardBuilder {
         return inlineKeyboardMarkup;
     }
 
-    // TODO Как делать обработчик???
     private static InlineKeyboardButton createProductButton(Product product) {
         InlineKeyboardButton button = new InlineKeyboardButton();
         button.setText(product.getName());
