@@ -8,6 +8,7 @@ import com.whitetail.whitetailmerchbot.service.*;
 import freemarker.template.TemplateException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.AnswerPreCheckoutQuery;
@@ -37,10 +38,12 @@ import static com.whitetail.whitetailmerchbot.bot.buttons.BackButtons.*;
 import static com.whitetail.whitetailmerchbot.bot.buttons.CartKeyboardBuilder.changeCartKeyboard;
 import static com.whitetail.whitetailmerchbot.bot.buttons.CartKeyboardBuilder.createCartKeyboard;
 import static com.whitetail.whitetailmerchbot.bot.buttons.MainMenuKeyboardBuilder.createMenuKeyboard;
+import static com.whitetail.whitetailmerchbot.bot.buttons.OrdersHistoryKeyboardBuilder.createOrdersHistoryButtons;
 import static com.whitetail.whitetailmerchbot.bot.buttons.ProductKeyboardBuilder.createProductKeyboard;
 import static com.whitetail.whitetailmerchbot.bot.constants.BotMessages.*;
 import static com.whitetail.whitetailmerchbot.bot.constants.ButtonsCallback.*;
 import static com.whitetail.whitetailmerchbot.bot.constants.ButtonsText.COST_DELIVERY;
+import static com.whitetail.whitetailmerchbot.bot.constants.ButtonsText.MAX_NUMBER_ORDERS_PER_PAGE;
 
 @Slf4j
 @Component
@@ -109,13 +112,14 @@ public class TelegramBot extends TelegramLongPollingBot {
             String response = switch (messageText) {
                 case "/start" -> {
                     userService.registerUser(chatId, tgUser.getUserName() == null ? fullName : tgUser.getUserName());
-                    yield "Привет, " + fullName + "! \uD83D\uDE42\n" + WELCOME_MESSAGE;
+                    yield "Привет, " + fullName + "! \uD83D\uDE42\n" + WELCOME_MESSAGE + "\n\n" + MAIN_MENU_TEXT;
                 }
                 case "/menu" -> MAIN_MENU_TEXT;
                 case "/help" -> HELP_MESSAGE;
                 default -> "Пока команда не поддерживается";
             };
-            sendMessage(chatId, response, messageText.equals("/menu") ? createMenuKeyboard() : null);
+            sendMessage(chatId, response, messageText.equals("/start") || messageText.equals("/menu")
+                    ? createMenuKeyboard() : null);
         }
     }
 
@@ -134,15 +138,17 @@ public class TelegramBot extends TelegramLongPollingBot {
             handleChangeQuantityFromCartCallback(callbackData, chatId, messageId);
         } else if (callbackData.startsWith(CHANGE_QUANTITY_ITEM_FROM_CART_CALLBACK)) {
             setQuantityProductInCart(update, CHANGE_QUANTITY_ITEM_FROM_CART_CALLBACK);
+        } else if (callbackData.startsWith(PAGE_CALLBACK)) {
+            handleHistoryCallback(chatId, messageId, callbackData);
         }
 
         switch (callbackData) {
             case CATALOG_CALLBACK -> handleCatalogCallback(chatId, messageId, update);
             case CART_CALLBACK -> returnCart(chatId, messageId);
-            case HISTORY_CALLBACK -> handleHistoryCallback(chatId, messageId, update);
+            case HISTORY_CALLBACK -> handleHistoryCallback(chatId, messageId, callbackData);
             case BACK_TO_MENU_CALLBACK -> handleBackToMenuCallback(chatId, messageId, update);
             case CHANGE_BASKET_CALLBACK -> handleChangeBasketCallback(chatId, messageId);
-            case BLANK_BUTTONS -> {
+            case BLANK_BUTTONS_CALLBACK -> {
                 // No action needed
             }
             case PLACE_ORDER_CALLBACK -> handlePlaceOrderCallback(update);
@@ -282,18 +288,29 @@ public class TelegramBot extends TelegramLongPollingBot {
         }
     }
 
-    private void handleHistoryCallback(long chatId, int messageId, Update update) {
-        List<Order> orders = orderService.findAll(chatId);
+    private void handleHistoryCallback(long chatId, int messageId, String callbackData) {
+        int page = callbackData.startsWith(PAGE_CALLBACK) ? getPage(callbackData) : 0;
+        Slice<Order> orders = orderService.findAll(chatId, page, MAX_NUMBER_ORDERS_PER_PAGE);
+
+        int prevPage = orders.hasPrevious() ? page - 1 : -1;
+        int nextPage = orders.hasNext() ? page + 1 : -1;
+
         if (!orders.isEmpty()) {
             try {
-                executeEditMessageText(chatId, messageId, templateService.createOrdersMessage(orders), createBackAndMainButtons());
+                executeEditMessageText(chatId, messageId,
+                        templateService.createOrdersMessage(orders.toList(), page),
+                        createOrdersHistoryButtons(prevPage, nextPage));
             } catch (IOException | TemplateException e) {
                 log.error(e.getMessage());
                 executeEditMessageText(chatId, messageId, "Ошибка при получении списка заказов", createBackAndMainButtons());
             }
         } else {
-            executeEditMessageText(chatId, messageId, ORDERS_IS_EMPTY, createBackAndMainButtons());
+            executeEditMessageText(chatId, messageId, ORDERS_IS_EMPTY, buttonToMarkup(createMainButton()));
         }
+    }
+
+    private int getPage(String callbackData) {
+        return Integer.parseInt(callbackData.subSequence(PAGE_CALLBACK.length(), callbackData.length()).toString());
     }
 
     private void handleBackToMenuCallback(long chatId, int messageId, Update update) {
