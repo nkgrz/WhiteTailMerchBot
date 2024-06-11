@@ -12,8 +12,8 @@ import static com.whitetail.whitetailmerchbot.bot.constants.ButtonsCallback.PAGE
 import static com.whitetail.whitetailmerchbot.bot.constants.ButtonsText.BACK_EMOJI;
 import static com.whitetail.whitetailmerchbot.bot.constants.ButtonsText.NEXT_EMOJI;
 
-public class OrdersHistoryKeyboardBuilder {
-    public static InlineKeyboardMarkup createOrdersHistoryButtons(int prevPage, int nextPage) {
+public class OrderHistoryKeyboardBuilder {
+    public static InlineKeyboardMarkup createOrderHistoryButtons(int prevPage, int nextPage) {
         List<List<InlineKeyboardButton>> keyboardRows = new ArrayList<>();
         if (!(prevPage == -1 && nextPage == -1)) {
             var buttonPrev = new InlineKeyboardButton();

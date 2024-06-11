@@ -38,7 +38,7 @@ import static com.whitetail.whitetailmerchbot.bot.buttons.BackButtons.*;
 import static com.whitetail.whitetailmerchbot.bot.buttons.CartKeyboardBuilder.changeCartKeyboard;
 import static com.whitetail.whitetailmerchbot.bot.buttons.CartKeyboardBuilder.createCartKeyboard;
 import static com.whitetail.whitetailmerchbot.bot.buttons.MainMenuKeyboardBuilder.createMenuKeyboard;
-import static com.whitetail.whitetailmerchbot.bot.buttons.OrdersHistoryKeyboardBuilder.createOrdersHistoryButtons;
+import static com.whitetail.whitetailmerchbot.bot.buttons.OrderHistoryKeyboardBuilder.createOrderHistoryButtons;
 import static com.whitetail.whitetailmerchbot.bot.buttons.ProductKeyboardBuilder.createProductKeyboard;
 import static com.whitetail.whitetailmerchbot.bot.constants.BotMessages.*;
 import static com.whitetail.whitetailmerchbot.bot.constants.ButtonsCallback.*;
@@ -299,7 +299,7 @@ public class TelegramBot extends TelegramLongPollingBot {
             try {
                 executeEditMessageText(chatId, messageId,
                         templateService.createOrdersMessage(orders.toList(), page),
-                        createOrdersHistoryButtons(prevPage, nextPage));
+                        createOrderHistoryButtons(prevPage, nextPage));
             } catch (IOException | TemplateException e) {
                 log.error(e.getMessage());
                 executeEditMessageText(chatId, messageId, "Ошибка при получении списка заказов", createBackAndMainButtons());
