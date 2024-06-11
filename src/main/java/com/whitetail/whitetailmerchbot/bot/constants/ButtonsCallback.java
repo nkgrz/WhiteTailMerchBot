@@ -15,5 +15,6 @@ public interface ButtonsCallback {
         String QUANTITY_CALLBACK = "quantity_";
         String CHANGE_QUANTITY_FROM_CART_CALLBACK = "changeQuantity_";
         String CHANGE_QUANTITY_ITEM_FROM_CART_CALLBACK = "changeQuantityItem_";
-        String BLANK_BUTTONS = "BLANK_BUTTONS";
+        String BLANK_BUTTONS_CALLBACK = "BLANK_BUTTONS";
+        String PAGE_CALLBACK = "page";
 }
