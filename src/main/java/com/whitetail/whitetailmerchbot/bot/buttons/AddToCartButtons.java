@@ -44,7 +44,7 @@ public class AddToCartButtons {
                 button.setCallbackData(callback + productId + "_" + i);
             } else {
                 button.setText(" ");
-                button.setCallbackData(BLANK_BUTTONS + productId + "_" + i);
+                button.setCallbackData(BLANK_BUTTONS_CALLBACK);
             }
             keyboardRows.get(keyboardRows.size() - 1).add(button);
 
