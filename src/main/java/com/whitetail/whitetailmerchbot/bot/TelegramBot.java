@@ -42,15 +42,12 @@ import static com.whitetail.whitetailmerchbot.bot.buttons.OrderHistoryKeyboardBu
 import static com.whitetail.whitetailmerchbot.bot.buttons.ProductKeyboardBuilder.createProductKeyboard;
 import static com.whitetail.whitetailmerchbot.bot.constants.BotMessages.*;
 import static com.whitetail.whitetailmerchbot.bot.constants.ButtonsCallback.*;
-import static com.whitetail.whitetailmerchbot.bot.constants.ButtonsText.COST_DELIVERY;
-import static com.whitetail.whitetailmerchbot.bot.constants.ButtonsText.MAX_NUMBER_ORDERS_PER_PAGE;
+import static com.whitetail.whitetailmerchbot.bot.constants.OtherConstants.*;
 
 @Slf4j
 @Component
 public class TelegramBot extends TelegramLongPollingBot {
 
-    // TODO как делать бекап БД???
-    // TODO вынести константы в отдельный файл который можно менять независимо от кода ?
     final BotConfig botConfig;
     private final ProductService productService;
     private final OrderService orderService;
@@ -75,7 +72,7 @@ public class TelegramBot extends TelegramLongPollingBot {
 
         List<BotCommand> botCommandList = List.of(
                 new BotCommand("/start", "Запуск бота"),
-                new BotCommand("/menu", "Меню бота"),
+                new BotCommand("/menu", "Главное меню"),
                 new BotCommand("/help", "Получить помощь")
         );
 
@@ -159,10 +156,15 @@ public class TelegramBot extends TelegramLongPollingBot {
         String payload = preCheckoutQuery.getInvoicePayload();
         AnswerPreCheckoutQuery answerPreCheckoutQuery = new AnswerPreCheckoutQuery();
         answerPreCheckoutQuery.setPreCheckoutQueryId(preCheckoutQuery.getId());
-        // TODO: Тут тоже надо проверять(или вообще только тут) что товаров достаточно
-        //  так как непонятно как долго пользователь будет оплачивать заказ
-        // TODO: Если товары есть в наличии, то подтвердить, иначе удалить заказ и вывести сообщение вернуться в корзину
-        answerPreCheckoutQuery.setOk(true);
+        Order order = orderService.findOrderByOrderId(Long.parseLong(payload));
+
+        if (order.getStatus().equals(ORDER_STATUS_CANCELED)) {
+            answerPreCheckoutQuery.setOk(false);
+            answerPreCheckoutQuery.setErrorMessage(ORDER_CANCELLED_MESSAGES);
+        } else {
+            answerPreCheckoutQuery.setOk(true);
+        }
+
         try {
             execute(answerPreCheckoutQuery);
         } catch (TelegramApiException e) {
@@ -174,11 +176,10 @@ public class TelegramBot extends TelegramLongPollingBot {
         Long chatId = update.getMessage().getChatId();
         SuccessfulPayment successfulPayment = update.getMessage().getSuccessfulPayment();
         Long orderId = Long.parseLong(successfulPayment.getInvoicePayload());
-        orderService.updateOrderStatus(orderId, "Заказ оплачен");
+        orderService.updateOrderStatus(orderId, ORDER_STATUS_PAID);
 
         Order order = orderService.findOrderByOrderId(orderId);
         String username = update.getMessage().getFrom().getUserName();
-
         String name = successfulPayment.getOrderInfo().getName();
         String phoneNumber = successfulPayment.getOrderInfo().getPhoneNumber();
         var shippingAddress = successfulPayment.getOrderInfo().getShippingAddress();
@@ -186,7 +187,6 @@ public class TelegramBot extends TelegramLongPollingBot {
         String messageToOwner = "";
 
         shippingDetailsService.newShippingDetails(chatId, orderId, name, phoneNumber, adressTemplate);
-        productService.updateProductQuantity(orderId);
 
         try {
             adressTemplate = templateService.createShippingAddressMessage(shippingAddress);
@@ -198,7 +198,7 @@ public class TelegramBot extends TelegramLongPollingBot {
     }
 
     private void sendConfirmationMessage(Long chatId, String messageToOwner) {
-        sendMessage(chatId, "Ваш заказ успешно оплачен!", buttonToMarkup(createMainButton()));
+        sendMessage(chatId, ORDER_SUCCESSFULLY_PAID, buttonToMarkup(createMainButton()));
         sendMessage(botConfig.owner, messageToOwner);
     }
 
@@ -213,8 +213,9 @@ public class TelegramBot extends TelegramLongPollingBot {
         }
 
         Order order = orderService.createOrder(chatId, cartItems);
-        cartService.clearCart(chatId);
         Long orderId = order.getOrderId();
+        cartService.clearCart(chatId);
+        productService.updateProductQuantity(order);
         BigDecimal price = order.getTotal();
         String description = "";
         try {
