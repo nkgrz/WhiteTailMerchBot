@@ -13,6 +13,4 @@ public interface ButtonsText {
     String ADD_TO_CART_TEXT = "Добавить в корзину";
     String BACK_EMOJI = "◀";
     String NEXT_EMOJI = "▶";
-    int COST_DELIVERY = 400;
-    int MAX_NUMBER_ORDERS_PER_PAGE = 3;
 }
