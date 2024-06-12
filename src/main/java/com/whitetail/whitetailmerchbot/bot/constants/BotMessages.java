@@ -11,4 +11,5 @@ public interface BotMessages {
     String PRODUCT_ADD_TO_CART_TEXT = "Товар успешно добавлен в корзину";
     String ORDER_CANCELLED_MESSAGES = "К сожалению, ваш заказ был отменен, " +
             "так как время ожидания оплаты истекло. Пожалуйста, попробуйте оформить заказ заново.\n";
+    String ORDER_SUCCESSFULLY_PAID = "Ваш заказ успешно оплачен!";
 }
