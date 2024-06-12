@@ -17,8 +17,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static com.whitetail.whitetailmerchbot.bot.constants.ButtonsText.COST_DELIVERY;
-import static com.whitetail.whitetailmerchbot.bot.constants.ButtonsText.MAX_NUMBER_ORDERS_PER_PAGE;
+import static com.whitetail.whitetailmerchbot.bot.constants.OtherConstants.COST_DELIVERY;
+import static com.whitetail.whitetailmerchbot.bot.constants.OtherConstants.MAX_NUMBER_ORDERS_PER_PAGE;
 
 @Service
 public class TemplateService {
