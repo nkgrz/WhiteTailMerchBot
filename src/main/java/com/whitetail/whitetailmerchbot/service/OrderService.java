@@ -12,21 +12,29 @@ import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.time.Instant;
 
+import java.time.LocalDateTime;
+import java.time.Period;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.whitetail.whitetailmerchbot.bot.constants.OtherConstants.ORDER_STATUS_CANCELED;
+import static com.whitetail.whitetailmerchbot.bot.constants.OtherConstants.ORDER_STATUS_UNPAID;
 import static com.whitetail.whitetailmerchbot.service.TemplateService.calculateTotalPrice;
 
 @Service
 public class OrderService {
     private final OrderRepository orderRepository;
     private final UserService userService;
+    private final ProductService productService;
 
     @Autowired
-    public OrderService(OrderRepository orderRepository, UserService userService) {
+    public OrderService(OrderRepository orderRepository, UserService userService, ProductService productService) {
         this.orderRepository = orderRepository;
         this.userService = userService;
+        this.productService = productService;
     }
+
     public Order save(Order order) {
         return orderRepository.save(order);
     }
@@ -45,7 +53,7 @@ public class OrderService {
         order.setUser(userService.getUser(chatId));
         order.setTotal(calculateTotalPrice(cartItems));
         order.setOrderDate(Timestamp.from(Instant.now()));
-        order.setStatus("Заказ не оплачен");
+        order.setStatus(ORDER_STATUS_UNPAID);
         order.setOrderProducts(getOrderProducts(cartItems, order));
         orderRepository.save(order);
         return order;
@@ -69,5 +77,15 @@ public class OrderService {
         Order order = findOrderByOrderId(orderId);
         order.setStatus(status);
         orderRepository.save(order);
+    }
+
+    public void cancelUnpaidOrders() {
+        Timestamp oneHourAgo = Timestamp.valueOf(LocalDateTime.now().minusHours(1));
+        List<Order> ordersToCancel = orderRepository.findOrdersByStatusAndOrderDateBefore(ORDER_STATUS_UNPAID, oneHourAgo);
+        for (Order order : ordersToCancel) {
+            order.setStatus(ORDER_STATUS_CANCELED);
+            orderRepository.save(order);
+            productService.updateProductQuantity(order);
+        }
     }
 }
