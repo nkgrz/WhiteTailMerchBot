@@ -44,6 +44,6 @@ public class ProductService {
     }
 
     public Product getProductById(int productId) {
-        return productsRepository.findById(productId).orElseThrow(() -> new RuntimeException("Product not found"));
+        return productsRepository.findById(productId).orElseThrow(() -> new RuntimeException("Product" + productId + "not found"));
     }
 }
