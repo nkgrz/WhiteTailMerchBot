@@ -9,7 +9,7 @@ public interface BotMessages {
     String ORDERS_IS_EMPTY = "Заказов пока не было";
     String MAIN_MENU_TEXT = "Главное меню";
     String PRODUCT_ADD_TO_CART_TEXT = "Товар успешно добавлен в корзину";
-    String ORDER_CANCELLED_MESSAGES = "К сожалению, ваш заказ был отменен, " +
-            "так как время ожидания оплаты истекло. Пожалуйста, попробуйте оформить заказ заново.\n";
+    String ORDER_CANCELLED_MESSAGES = "\nК сожалению, ваш заказ был отменен, " +
+            "так как время ожидания оплаты истекло. Пожалуйста, попробуйте оформить заказ заново.";
     String ORDER_SUCCESSFULLY_PAID = "Ваш заказ успешно оплачен!";
 }
